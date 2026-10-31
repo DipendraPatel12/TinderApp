@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "210290114219",
+    "project_id": "tinderapp-6c7e2",
+    "storage_bucket": "tinderapp-6c7e2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:210290114219:android:f3bb8d13613d2492f241ee",
+        "android_client_info": {
+          "package_name": "com.tinderapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_w13JL9clrBEdnt2HREqzj0TyCURHw5Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
