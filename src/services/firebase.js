@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { authClient, dbClient } from './api';
 import { firebaseConfig } from '../config';
 import { saveAuthSession, getAuthSession, clearAuthSession } from './secureStorage';
@@ -12,14 +13,51 @@ const notifyAuthListeners = (user) => {
   authListeners.forEach((listener) => listener(user));
 };
 
-/**
- * Restore authenticated session on app launch
- */
+// Refresh short-lived ID token with Google Secure Token API
+export const refreshAuthToken = async () => {
+  try {
+    const session = currentSession || (await getAuthSession());
+    if (!session?.refreshToken) return null;
+
+    const body = `grant_type=refresh_token&refresh_token=${encodeURIComponent(
+      session.refreshToken
+    )}`;
+
+    const response = await axios.post(
+      `https://securetoken.googleapis.com/v1/token?key=${firebaseConfig.apiKey}`,
+      body,
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: 10000,
+      }
+    );
+
+    const data = response.data;
+    const updatedSession = {
+      ...session,
+      idToken: data.id_token,
+      refreshToken: data.refresh_token || session.refreshToken,
+    };
+
+    currentSession = updatedSession;
+    await saveAuthSession(updatedSession);
+    notifyAuthListeners(updatedSession);
+    return data.id_token;
+  } catch (err) {
+    console.log('Token refresh error:', err.message || err);
+    return null;
+  }
+};
+
+// Restore authenticated session on app launch
 export const restoreSession = async () => {
   try {
     const saved = await getAuthSession();
     if (saved?.uid && saved?.idToken) {
       currentSession = saved;
+      if (saved.refreshToken) {
+        refreshAuthToken().catch(() => {});
+      }
     }
   } catch (err) {
     console.log('Error restoring session:', err);
@@ -27,9 +65,7 @@ export const restoreSession = async () => {
   return currentSession;
 };
 
-/**
- * Register a user with Email and Password using Axios
- */
+// Register user with email and password
 export const registerWithEmail = async (email, password, displayName = '') => {
   try {
     const response = await authClient.post(
@@ -53,7 +89,6 @@ export const registerWithEmail = async (email, password, displayName = '') => {
     currentSession = user;
     await saveAuthSession(user);
 
-    // Create initial user profile
     await saveUserProfile(user.uid, {
       uid: user.uid,
       email: user.email,
@@ -73,9 +108,7 @@ export const registerWithEmail = async (email, password, displayName = '') => {
   }
 };
 
-/**
- * Log in a user with Email and Password using Axios
- */
+// Log in user with email and password
 export const loginWithEmail = async (email, password) => {
   try {
     const response = await authClient.post(
@@ -105,49 +138,72 @@ export const loginWithEmail = async (email, password) => {
   }
 };
 
-/**
- * Sign in with Google using selected Google account
- */
+// Sign in with Google using selected account
 export const loginWithGoogle = async (googleAccount = null) => {
-  const email = (googleAccount?.email || 'user@gmail.com').trim().toLowerCase();
-  const displayName = googleAccount?.displayName || email.split('@')[0];
-  const photoURL =
-    googleAccount?.photoURL ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=FE3C72&color=fff`;
-
-  // Deterministic UID based on Google email so logging in with the same email restores existing profile
-  const sanitizedUid = 'google_' + email.replace(/[^a-z0-9]/g, '_');
-  const user = {
-    uid: sanitizedUid,
-    email,
-    displayName,
-    photoURL,
-    idToken: 'google_token_' + sanitizedUid,
-  };
-
-  currentSession = user;
-  await saveAuthSession(user);
-
-  const existing = await getUserProfile(user.uid);
-  if (!existing) {
-    await saveUserProfile(user.uid, {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      city: '',
-      isProfileCompleted: false,
-      createdAt: new Date().toISOString(),
-    });
+  if (!googleAccount?.email) {
+    throw new Error('No Google account provided');
   }
 
-  notifyAuthListeners(user);
-  return user;
+  // Ensure Google ID token is present
+  if (!googleAccount.idToken) {
+    throw new Error(
+      'Google ID token is missing. Please ensure your debug SHA-1 fingerprint is added to Firebase Console.'
+    );
+  }
+
+  try {
+    // Authenticate Google credential with Firebase Identity Toolkit
+    const response = await authClient.post(
+      `/accounts:signInWithIdp?key=${firebaseConfig.apiKey}`,
+      {
+        postBody: `id_token=${googleAccount.idToken}&providerId=google.com`,
+        requestUri: 'http://localhost',
+        returnIdpCredential: true,
+        returnSecureToken: true,
+      }
+    );
+
+    const data = response.data;
+    const user = {
+      uid: data.localId, // Real Firebase UID in Authentication console
+      email: data.email,
+      displayName:
+        data.displayName || googleAccount.displayName || data.email.split('@')[0],
+      photoURL: data.photoUrl || googleAccount.photoURL || '',
+      idToken: data.idToken,
+      refreshToken: data.refreshToken,
+    };
+
+    currentSession = user;
+    await saveAuthSession(user);
+
+    // Persist user profile in Realtime Database under their official Firebase Authentication UID
+    const existing = await getUserProfile(user.uid);
+    if (!existing) {
+      await saveUserProfile(user.uid, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        city: '',
+        isProfileCompleted: false,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    notifyAuthListeners(user);
+    return user;
+  } catch (err) {
+    const errorMsg =
+      err.response?.data?.error?.message ||
+      err.message ||
+      'Failed to authenticate Google user with Firebase';
+    console.log('Firebase Google Sign-in error:', errorMsg);
+    throw new Error(formatFirebaseError(errorMsg));
+  }
 };
 
-/**
- * Sign out
- */
+// Sign out
 export const logoutUser = async () => {
   currentSession = null;
   await clearAuthSession();
@@ -156,23 +212,17 @@ export const logoutUser = async () => {
   return true;
 };
 
-/**
- * Get current session user
- */
+// Get current session user
 export const getCurrentUser = () => currentSession;
 
-/**
- * Listen to auth state changes
- */
+// Listen to auth state changes
 export const onAuthStateChanged = (callback) => {
   authListeners.add(callback);
   restoreSession().then((session) => callback(session));
   return () => authListeners.delete(callback);
 };
 
-/**
- * Save / Update User Profile in Realtime Database
- */
+// Save user profile in Realtime Database
 export const saveUserProfile = async (uid, profileData) => {
   try {
     const response = await dbClient.patch(`/users/${uid}.json`, profileData);
@@ -183,9 +233,7 @@ export const saveUserProfile = async (uid, profileData) => {
   }
 };
 
-/**
- * Get User Profile from Realtime Database
- */
+// Get user profile from Realtime Database
 export const getUserProfile = async (uid) => {
   try {
     const response = await dbClient.get(`/users/${uid}.json`);
@@ -195,9 +243,7 @@ export const getUserProfile = async (uid) => {
   }
 };
 
-/**
- * Helper to turn Firebase error codes into user-friendly strings
- */
+// Format Firebase errors into readable strings
 function formatFirebaseError(code) {
   if (!code) return 'An unexpected error occurred';
   switch (code) {
@@ -217,6 +263,11 @@ function formatFirebaseError(code) {
       return 'This account has been disabled.';
     case 'TOO_MANY_ATTEMPTS_TRY_LATER':
       return 'Too many attempts. Please try again later.';
+    case 'CONFIGURATION_NOT_FOUND':
+    case 'OPERATION_NOT_ALLOWED':
+      return 'Google Sign-in is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.';
+    case 'INVALID_IDP_RESPONSE':
+      return 'Google authentication failed. Please verify that your debug SHA-1 fingerprint is added in Firebase Console.';
     default:
       return code.replace(/_/g, ' ').toLowerCase();
   }

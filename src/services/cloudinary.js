@@ -1,11 +1,5 @@
 import { cloudinaryConfig } from '../config';
 
-/**
- * Upload an image to Cloudinary using unsigned upload preset
- *
- * @param {Object} file - Image file object from image picker ({ uri, type, fileName })
- * @returns {Promise<string>} - Direct secure Cloudinary URL
- */
 export const uploadImageToCloudinary = async (file) => {
   if (!file?.uri) {
     throw new Error('No image selected for upload');

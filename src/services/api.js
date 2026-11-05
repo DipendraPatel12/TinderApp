@@ -33,7 +33,36 @@ const handleResponseError = (error) => {
 };
 
 authClient.interceptors.response.use((response) => response, handleResponseError);
-dbClient.interceptors.response.use((response) => response, handleResponseError);
+
+// Realtime Database response interceptor with silent auto-refresh on 401 token expiration
+dbClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const isTokenExpired =
+      error.response?.status === 401 ||
+      error.response?.data?.error === 'Auth token is expired';
+
+    if (isTokenExpired && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const { refreshAuthToken } = require('./firebase');
+        const newToken = await refreshAuthToken();
+        if (newToken) {
+          originalRequest.params = {
+            ...originalRequest.params,
+            auth: newToken,
+          };
+          return dbClient(originalRequest);
+        }
+      } catch (refreshErr) {
+        console.log('Silent token refresh note:', refreshErr.message || refreshErr);
+      }
+    }
+
+    return handleResponseError(error);
+  }
+);
 
 export default {
   authClient,

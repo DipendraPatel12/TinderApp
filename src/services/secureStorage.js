@@ -1,8 +1,5 @@
 import * as Keychain from 'react-native-keychain';
 
-/**
- * Save user auth session securely
- */
 export const saveAuthSession = async (sessionData) => {
   try {
     const credentials = JSON.stringify(sessionData);
@@ -14,9 +11,6 @@ export const saveAuthSession = async (sessionData) => {
   }
 };
 
-/**
- * Retrieve saved auth session
- */
 export const getAuthSession = async () => {
   try {
     const credentials = await Keychain.getGenericPassword();
@@ -30,17 +24,11 @@ export const getAuthSession = async () => {
   }
 };
 
-/**
- * Get active auth token
- */
 export const getAuthToken = async () => {
   const session = await getAuthSession();
   return session?.idToken || null;
 };
 
-/**
- * Clear auth session on logout
- */
 export const clearAuthSession = async () => {
   try {
     await Keychain.resetGenericPassword();

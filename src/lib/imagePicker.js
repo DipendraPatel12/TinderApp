@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { Alert, Platform, PermissionsAndroid } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 const DEFAULT_OPTIONS = {
@@ -6,11 +6,9 @@ const DEFAULT_OPTIONS = {
   maxWidth: 1000,
   maxHeight: 1000,
   quality: 0.8,
+  saveToPhotos: false,
 };
 
-/**
- * Format raw asset into a standard normalized image object
- */
 const formatAsset = (asset) => {
   if (!asset?.uri) return null;
   return {
@@ -23,14 +21,61 @@ const formatAsset = (asset) => {
   };
 };
 
-/**
- * Pick an image from device gallery
- */
+// Request Android camera runtime permission
+const requestCameraPermission = async () => {
+  if (Platform.OS !== 'android') return true;
+
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      {
+        title: 'Camera Permission',
+        message: 'This app needs access to your camera to take a profile photo.',
+        buttonPositive: 'Allow',
+        buttonNegative: 'Deny',
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch (err) {
+    console.log('Camera permission error:', err);
+    return false;
+  }
+};
+
+// Request Android gallery runtime permission (Android 12 and below)
+const requestGalleryPermission = async () => {
+  if (Platform.OS !== 'android') return true;
+  if (Platform.Version >= 33) return true;
+
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      {
+        title: 'Gallery Permission',
+        message: 'This app needs access to your photos to choose a profile photo.',
+        buttonPositive: 'Allow',
+        buttonNegative: 'Deny',
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch (err) {
+    return true;
+  }
+};
+
 export const openGallery = async (customOptions = {}) => {
   try {
+    await requestGalleryPermission();
     const result = await launchImageLibrary({ ...DEFAULT_OPTIONS, ...customOptions });
     if (result.didCancel) return null;
     if (result.errorCode) {
+      if (result.errorCode === 'permission') {
+        Alert.alert(
+          'Permission Denied',
+          'Storage permission is required to choose photos. Please enable it in app settings.'
+        );
+        return null;
+      }
       throw new Error(result.errorMessage || 'Failed to select image from gallery');
     }
     return formatAsset(result.assets?.[0]);
@@ -40,14 +85,31 @@ export const openGallery = async (customOptions = {}) => {
   }
 };
 
-/**
- * Capture a photo using device camera
- */
 export const openCamera = async (customOptions = {}) => {
   try {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert(
+        'Permission Denied',
+        'Camera permission is required to take photos. Please grant permission in app settings.'
+      );
+      return null;
+    }
+
     const result = await launchCamera({ ...DEFAULT_OPTIONS, ...customOptions });
     if (result.didCancel) return null;
     if (result.errorCode) {
+      if (result.errorCode === 'permission') {
+        Alert.alert(
+          'Permission Denied',
+          'Camera permission is required to take photos. Please grant permission in app settings.'
+        );
+        return null;
+      }
+      if (result.errorCode === 'camera_unavailable') {
+        Alert.alert('Camera Unavailable', 'No camera hardware found on this device.');
+        return null;
+      }
       throw new Error(result.errorMessage || 'Failed to capture photo with camera');
     }
     return formatAsset(result.assets?.[0]);
@@ -57,9 +119,6 @@ export const openCamera = async (customOptions = {}) => {
   }
 };
 
-/**
- * Show standard picker alert dialog (Take Photo / Choose from Gallery / Cancel)
- */
 export const promptImagePicker = ({
   title = 'Select Photo',
   message = 'Choose an option to upload your photo',
@@ -106,4 +165,3 @@ export default {
   openCamera,
   promptImagePicker,
 };
-

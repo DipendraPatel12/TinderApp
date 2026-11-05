@@ -1,28 +1,32 @@
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { firebaseConfig } from '../config';
 
-// Configure Google Sign-In
+// Configure Google Sign-In with Web Client ID
 GoogleSignin.configure({
   scopes: ['email', 'profile'],
+  webClientId: firebaseConfig.webClientId,
 });
 
-/**
- * Trigger Android's native default Google Sign-In account chooser
- * Opens the system-level Google Account sheet with device accounts
- */
 export const promptGoogleSignIn = async () => {
   try {
-    // 1. Ensure Google Play Services are available
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-
-    // 2. Open Android's native default account chooser
     const response = await GoogleSignin.signIn();
 
-    // 3. Extract user data (supports both latest and legacy response shapes)
     const userInfo = response?.data?.user || response?.user || response;
-    const idToken = response?.data?.idToken || response?.idToken;
+    let idToken = response?.data?.idToken || response?.idToken;
+
+    // Fetch idToken via getTokens if not present in direct response
+    if (!idToken) {
+      try {
+        const tokens = await GoogleSignin.getTokens();
+        idToken = tokens?.idToken;
+      } catch (tokenErr) {
+        console.log('Error getting tokens from GoogleSignin:', tokenErr);
+      }
+    }
 
     if (!userInfo?.email) {
-      throw new Error('No account selected');
+      throw new Error('No Google account was selected.');
     }
 
     return {
@@ -33,15 +37,18 @@ export const promptGoogleSignIn = async () => {
     };
   } catch (error) {
     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-      // User dismissed the native dialog
       return null;
     }
     if (error.code === statusCodes.IN_PROGRESS) {
-      console.log('Google Sign-in is already in progress');
       return null;
     }
     if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-      throw new Error('Google Play Services is not available on this device');
+      throw new Error('Google Play Services is not available on this device.');
+    }
+    if (error.code === '10' || error.message?.includes('DEVELOPER_ERROR')) {
+      throw new Error(
+        'Google Sign-In DEVELOPER_ERROR (10): Please ensure your SHA-1 fingerprint (5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25) is added in Firebase Console.'
+      );
     }
 
     console.log('Google Sign-in error:', error.message || error);
@@ -49,9 +56,6 @@ export const promptGoogleSignIn = async () => {
   }
 };
 
-/**
- * Sign out of native Google session
- */
 export const signOutGoogle = async () => {
   try {
     await GoogleSignin.signOut();
