@@ -8,18 +8,16 @@ import { onAuthStateChanged, getUserProfile } from '../services/firebase';
 import { useAuth } from '../hooks';
 
 const RootNavigation = () => {
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [isSplashTimerDone, setIsSplashTimerDone] = useState(false);
   const { user, userData, authInitialized, syncUser, syncUserData } = useAuth();
 
   useEffect(() => {
-    // 1. Brief minimum brand presentation (1.2s) so branding displays smoothly
+
     const timer = setTimeout(() => {
-      setMinTimeElapsed(true);
+      setIsSplashTimerDone(true);
     }, 1200);
 
-    // 2. Sync with real Firebase Auth state & fetch profile
     const unsubscribe = onAuthStateChanged(async (currentUser) => {
-      syncUser(currentUser);
       if (currentUser?.uid) {
         try {
           const profile = await getUserProfile(currentUser.uid);
@@ -27,6 +25,10 @@ const RootNavigation = () => {
         } catch (e) {
           syncUserData({ uid: currentUser.uid, isProfileCompleted: false });
         }
+        syncUser(currentUser);
+      } else {
+        syncUserData(null);
+        syncUser(null);
       }
     });
 
@@ -36,10 +38,14 @@ const RootNavigation = () => {
     };
   }, []);
 
-  // Show splash until BOTH the minimum brand time has elapsed AND Firebase auth has resolved
-  const isSplashVisible = !minTimeElapsed || !authInitialized;
+  // App is ready when:
+  // 1. Minimum 1.2s splash timer is done
+  // 2. Auth state is initialized
+  // 3. If a user is logged in, their profile data must also be loaded (preventing CompleteProfile flash)
+  const isProfileLoading = Boolean(user && userData === null);
+  const isAppReady = isSplashTimerDone && authInitialized && !isProfileLoading;
 
-  if (isSplashVisible) {
+  if (!isAppReady) {
     return <Splash />;
   }
 

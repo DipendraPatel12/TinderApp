@@ -3,10 +3,11 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 const DEFAULT_OPTIONS = {
   mediaType: 'photo',
-  maxWidth: 1000,
-  maxHeight: 1000,
-  quality: 0.8,
   saveToPhotos: false,
+  includeBase64: false,
+  maxWidth: 1200,
+  maxHeight: 1200,
+  quality: 0.8,
 };
 
 const formatAsset = (asset) => {
@@ -63,7 +64,11 @@ const requestGalleryPermission = async () => {
   }
 };
 
+let isPickerActive = false;
+
 export const openGallery = async (customOptions = {}) => {
+  if (isPickerActive) return null;
+  isPickerActive = true;
   try {
     await requestGalleryPermission();
     const result = await launchImageLibrary({ ...DEFAULT_OPTIONS, ...customOptions });
@@ -82,10 +87,16 @@ export const openGallery = async (customOptions = {}) => {
   } catch (error) {
     console.log('Error opening gallery:', error.message || error);
     throw error;
+  } finally {
+    setTimeout(() => {
+      isPickerActive = false;
+    }, 500);
   }
 };
 
 export const openCamera = async (customOptions = {}) => {
+  if (isPickerActive) return null;
+  isPickerActive = true;
   try {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
@@ -116,6 +127,10 @@ export const openCamera = async (customOptions = {}) => {
   } catch (error) {
     console.log('Error opening camera:', error.message || error);
     throw error;
+  } finally {
+    setTimeout(() => {
+      isPickerActive = false;
+    }, 500);
   }
 };
 

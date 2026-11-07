@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Image, StatusBar } from 'react-native';
+import { View, StatusBar } from 'react-native';
 import { styles } from './Splash.Style';
 import { Colors } from '../../constants';
+import { AppImage } from '../../lib';
 
 const Splash = () => {
   return (
@@ -10,9 +11,10 @@ const Splash = () => {
         barStyle="light-content"
         backgroundColor={Colors.primary}
       />
-      <Image
+      <AppImage
         source={require('../../assets/images/tinder_logo_white.png')}
         style={styles.logo}
+        resizeMode="contain"
       />
     </View>
   );

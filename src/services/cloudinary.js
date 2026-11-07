@@ -11,7 +11,7 @@ export const uploadImageToCloudinary = async (file) => {
   data.append('file', {
     uri: file.uri,
     type: file.type || 'image/jpeg',
-    name: file.fileName || `photo_${Date.now()}.jpg`,
+    name: file.name || file.fileName || `photo_${Date.now()}.jpg`,
   });
   data.append('upload_preset', uploadPreset);
 

@@ -4,10 +4,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
-  Keyboard,
+  Keyboard,         
   ScrollView,
   Platform,
   StatusBar,
@@ -19,6 +18,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { styles } from './Login.Style';
 import { Colors } from '../../constants';
 import { useAuth } from '../../hooks';
+import { AppIcon, AppImage } from '../../lib';
 
 const Login = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -177,9 +177,11 @@ const Login = ({ navigation }) => {
                         activeOpacity={0.7}
                         onPress={() => setShowPassword(!showPassword)}
                       >
-                        <Text style={styles.eyeText}>
-                          {showPassword ? 'Hide' : 'Show'}
-                        </Text>
+                        <AppIcon
+                          name={showPassword ? 'eye-slash' : 'eye'}
+                          size={18}
+                          color={Colors.textSecondary}
+                        />
                       </TouchableOpacity>
                     </View>
                   )}
@@ -227,9 +229,10 @@ const Login = ({ navigation }) => {
               onPress={handleGoogleSignIn}
               disabled={loading}
             >
-              <Image
+              <AppImage
                 source={require('../../assets/images/google_logo.png')}
                 style={styles.googleLogo}
+                resizeMode="contain"
               />
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>

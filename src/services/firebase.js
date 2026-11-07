@@ -1,150 +1,125 @@
-import axios from 'axios';
-import { authClient, dbClient } from './api';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithCredential,
+  GoogleAuthProvider,
+  signOut,
+  onAuthStateChanged as onNativeAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile,
+  deleteUser,
+} from '@react-native-firebase/auth';
+import {
+  getDatabase,
+  ref,
+  serverTimestamp,
+} from '@react-native-firebase/database';
 import { firebaseConfig } from '../config';
-import { saveAuthSession, getAuthSession, clearAuthSession } from './secureStorage';
 import { signOutGoogle } from '../lib/googleAuth';
 
 export { firebaseConfig };
 
-let currentSession = null;
-const authListeners = new Set();
-
-const notifyAuthListeners = (user) => {
-  authListeners.forEach((listener) => listener(user));
+// Native Database instance accessor
+export const getDb = () => {
+  return getDatabase(undefined, firebaseConfig.databaseURL);
 };
 
-// Refresh short-lived ID token with Google Secure Token API
-export const refreshAuthToken = async () => {
-  try {
-    const session = currentSession || (await getAuthSession());
-    if (!session?.refreshToken) return null;
-
-    const body = `grant_type=refresh_token&refresh_token=${encodeURIComponent(
-      session.refreshToken
-    )}`;
-
-    const response = await axios.post(
-      `https://securetoken.googleapis.com/v1/token?key=${firebaseConfig.apiKey}`,
-      body,
-      {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        timeout: 10000,
-      }
-    );
-
-    const data = response.data;
-    const updatedSession = {
-      ...session,
-      idToken: data.id_token,
-      refreshToken: data.refresh_token || session.refreshToken,
-    };
-
-    currentSession = updatedSession;
-    await saveAuthSession(updatedSession);
-    notifyAuthListeners(updatedSession);
-    return data.id_token;
-  } catch (err) {
-    console.log('Token refresh error:', err.message || err);
-    return null;
-  }
+// Native Auth instance accessor
+export const getAuthInstance = () => {
+  return getAuth();
 };
 
-// Restore authenticated session on app launch
-export const restoreSession = async () => {
-  try {
-    const saved = await getAuthSession();
-    if (saved?.uid && saved?.idToken) {
-      currentSession = saved;
-      if (saved.refreshToken) {
-        refreshAuthToken().catch(() => {});
-      }
-    }
-  } catch (err) {
-    console.log('Error restoring session:', err);
-  }
-  return currentSession;
+// Compatibility namespaces for native SDK syntax database().ref() and auth().signIn...
+export const auth = () => getAuthInstance();
+auth.GoogleAuthProvider = GoogleAuthProvider;
+
+export const database = () => getDb();
+database.ServerValue = {
+  get TIMESTAMP() {
+    return serverTimestamp();
+  },
 };
 
-// Register user with email and password
+// Format native Firebase user object to clean, serializable plain object
+export const formatUser = (nativeUser, overrideDisplayName = null) => {
+  if (!nativeUser) return null;
+  return {
+    uid: nativeUser.uid,
+    email: nativeUser.email || '',
+    displayName:
+      overrideDisplayName ||
+      nativeUser.displayName ||
+      (nativeUser.email ? nativeUser.email.split('@')[0] : '') ||
+      'User',
+    photoURL: nativeUser.photoURL || '',
+  };
+};
+
+/**
+ * Register a user with email and password using native Firebase Auth.
+ * Automatically saves profile in Realtime Database under their official UID.
+ */
 export const registerWithEmail = async (email, password, displayName = '') => {
   try {
-    const response = await authClient.post(
-      `/accounts:signUp?key=${firebaseConfig.apiKey}`,
-      {
-        email: email.trim(),
-        password,
-        returnSecureToken: true,
-      }
+    const authInstance = getAuthInstance();
+    const userCredential = await createUserWithEmailAndPassword(
+      authInstance,
+      email.trim(),
+      password
     );
+    const nativeUser = userCredential.user;
+    const resolvedDisplayName = displayName || email.split('@')[0];
 
-    const data = response.data;
-    const user = {
-      uid: data.localId,
-      email: data.email,
-      displayName: displayName || email.split('@')[0],
-      idToken: data.idToken,
-      refreshToken: data.refreshToken,
-    };
+    try {
+      await updateProfile(nativeUser, { displayName: resolvedDisplayName });
+    } catch (e) {
+      console.log('Note: updateProfile displayName error:', e.message);
+    }
 
-    currentSession = user;
-    await saveAuthSession(user);
-
-    await saveUserProfile(user.uid, {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
+    await saveUserProfile(nativeUser.uid, {
+      uid: nativeUser.uid,
+      email: nativeUser.email,
+      displayName: resolvedDisplayName,
       city: '',
-      photoURL: '',
+      photoURL: nativeUser.photoURL || '',
       bio: '',
       hobbies: [],
       isProfileCompleted: false,
       createdAt: new Date().toISOString(),
     });
 
-    notifyAuthListeners(user);
-    return user;
+    return formatUser(nativeUser, resolvedDisplayName);
   } catch (err) {
-    throw new Error(formatFirebaseError(err.message));
+    throw new Error(formatFirebaseError(err.code || err.message));
   }
 };
 
-// Log in user with email and password
+/**
+ * Log in user with email and password using native Firebase Auth.
+ */
 export const loginWithEmail = async (email, password) => {
   try {
-    const response = await authClient.post(
-      `/accounts:signInWithPassword?key=${firebaseConfig.apiKey}`,
-      {
-        email: email.trim(),
-        password,
-        returnSecureToken: true,
-      }
+    const authInstance = getAuthInstance();
+    const userCredential = await signInWithEmailAndPassword(
+      authInstance,
+      email.trim(),
+      password
     );
-
-    const data = response.data;
-    const user = {
-      uid: data.localId,
-      email: data.email,
-      displayName: data.displayName || email.split('@')[0],
-      idToken: data.idToken,
-      refreshToken: data.refreshToken,
-    };
-
-    currentSession = user;
-    await saveAuthSession(user);
-    notifyAuthListeners(user);
-    return user;
+    return formatUser(userCredential.user);
   } catch (err) {
-    throw new Error(formatFirebaseError(err.message));
+    throw new Error(formatFirebaseError(err.code || err.message));
   }
 };
 
-// Sign in with Google using selected account
+/**
+ * Sign in with Google using GoogleAuthProvider.credential() and signInWithCredential().
+ */
 export const loginWithGoogle = async (googleAccount = null) => {
   if (!googleAccount?.email) {
     throw new Error('No Google account provided');
   }
 
-  // Ensure Google ID token is present
   if (!googleAccount.idToken) {
     throw new Error(
       'Google ID token is missing. Please ensure your debug SHA-1 fingerprint is added to Firebase Console.'
@@ -152,123 +127,220 @@ export const loginWithGoogle = async (googleAccount = null) => {
   }
 
   try {
-    // Authenticate Google credential with Firebase Identity Toolkit
-    const response = await authClient.post(
-      `/accounts:signInWithIdp?key=${firebaseConfig.apiKey}`,
-      {
-        postBody: `id_token=${googleAccount.idToken}&providerId=google.com`,
-        requestUri: 'http://localhost',
-        returnIdpCredential: true,
-        returnSecureToken: true,
-      }
-    );
+    const authInstance = getAuthInstance();
+    const credential = GoogleAuthProvider.credential(googleAccount.idToken);
+    const userCredential = await signInWithCredential(authInstance, credential);
+    const nativeUser = userCredential.user;
 
-    const data = response.data;
-    const user = {
-      uid: data.localId, // Real Firebase UID in Authentication console
-      email: data.email,
-      displayName:
-        data.displayName || googleAccount.displayName || data.email.split('@')[0],
-      photoURL: data.photoUrl || googleAccount.photoURL || '',
-      idToken: data.idToken,
-      refreshToken: data.refreshToken,
-    };
-
-    currentSession = user;
-    await saveAuthSession(user);
-
-    // Persist user profile in Realtime Database under their official Firebase Authentication UID
-    const existing = await getUserProfile(user.uid);
+    // Check if user profile already exists, if not initialize under their official Firebase Authentication UID
+    const existing = await getUserProfile(nativeUser.uid);
     if (!existing) {
-      await saveUserProfile(user.uid, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
+      await saveUserProfile(nativeUser.uid, {
+        uid: nativeUser.uid,
+        email: nativeUser.email,
+        displayName:
+          nativeUser.displayName ||
+          googleAccount.displayName ||
+          (nativeUser.email ? nativeUser.email.split('@')[0] : 'User'),
+        photoURL: nativeUser.photoURL || googleAccount.photoURL || '',
         city: '',
+        bio: '',
+        hobbies: [],
         isProfileCompleted: false,
         createdAt: new Date().toISOString(),
       });
     }
 
-    notifyAuthListeners(user);
-    return user;
+    return formatUser(nativeUser);
   } catch (err) {
-    const errorMsg =
-      err.response?.data?.error?.message ||
-      err.message ||
-      'Failed to authenticate Google user with Firebase';
+    const errorMsg = err.code || err.message || 'Google sign-in failed';
     console.log('Firebase Google Sign-in error:', errorMsg);
     throw new Error(formatFirebaseError(errorMsg));
   }
 };
 
-// Sign out
+/**
+ * Sign out current user from Firebase and Google.
+ */
 export const logoutUser = async () => {
-  currentSession = null;
-  await clearAuthSession();
+  try {
+    const authInstance = getAuthInstance();
+    await signOut(authInstance);
+  } catch (err) {
+    console.log('Error during Firebase signOut:', err.message);
+  }
   await signOutGoogle();
-  notifyAuthListeners(null);
   return true;
 };
 
-// Get current session user
-export const getCurrentUser = () => currentSession;
-
-// Listen to auth state changes
-export const onAuthStateChanged = (callback) => {
-  authListeners.add(callback);
-  restoreSession().then((session) => callback(session));
-  return () => authListeners.delete(callback);
+/**
+ * Get current authenticated user
+ */
+export const getCurrentUser = () => {
+  const authInstance = getAuthInstance();
+  return formatUser(authInstance.currentUser);
 };
 
-// Save user profile in Realtime Database
-export const saveUserProfile = async (uid, profileData) => {
+/**
+ * Listen to native auth state changes with automatic unsubscription
+ */
+export const onAuthStateChanged = (callback) => {
+  const authInstance = getAuthInstance();
+  return onNativeAuthStateChanged(authInstance, (user) => {
+    callback(formatUser(user));
+  });
+};
+
+/**
+ * Send password reset email
+ */
+export const sendPasswordReset = async (email) => {
   try {
-    const response = await dbClient.patch(`/users/${uid}.json`, profileData);
-    return response.data || profileData;
+    const authInstance = getAuthInstance();
+    await sendPasswordResetEmail(authInstance, email.trim());
+    return true;
+  } catch (err) {
+    throw new Error(formatFirebaseError(err.code || err.message));
+  }
+};
+
+/**
+ * Update authenticated user's profile in Firebase Auth
+ */
+export const updateUserProfile = async (profile) => {
+  const authInstance = getAuthInstance();
+  if (!authInstance.currentUser) {
+    throw new Error('No user is currently signed in');
+  }
+  await updateProfile(authInstance.currentUser, profile);
+  return formatUser(authInstance.currentUser);
+};
+
+/**
+ * Delete current user account from Firebase Auth
+ */
+export const deleteUserAccount = async () => {
+  const authInstance = getAuthInstance();
+  if (!authInstance.currentUser) {
+    throw new Error('No user is currently signed in');
+  }
+  await deleteUser(authInstance.currentUser);
+  return true;
+};
+
+/**
+ * Save / update user profile in Realtime Database under /users/{uid}
+ */
+export const saveUserProfile = async (uid, profileData) => {
+  if (!uid) return profileData;
+  try {
+    const db = getDb();
+    await db.ref(`/users/${uid}`).update(profileData);
+    return profileData;
   } catch (err) {
     console.log('Error saving user profile:', err.message);
     return profileData;
   }
 };
 
-// Get user profile from Realtime Database
+/**
+ * Get user profile from Realtime Database under /users/{uid}
+ */
 export const getUserProfile = async (uid) => {
+  if (!uid) return null;
   try {
-    const response = await dbClient.get(`/users/${uid}.json`);
-    return response.data;
+    const db = getDb();
+    const snapshot = await db.ref(`/users/${uid}`).once('value');
+    const data = snapshot.val();
+    if (data && data.hobbies && !Array.isArray(data.hobbies)) {
+      data.hobbies = Object.values(data.hobbies);
+    }
+    return data;
   } catch (err) {
+    console.log('Error getting user profile:', err.message);
     return null;
   }
 };
 
-// Format Firebase errors into readable strings
-function formatFirebaseError(code) {
-  if (!code) return 'An unexpected error occurred';
-  switch (code) {
-    case 'EMAIL_EXISTS':
-      return 'This email is already registered. Please log in.';
-    case 'INVALID_EMAIL':
-      return 'Please enter a valid email address.';
-    case 'WEAK_PASSWORD : Password should be at least 6 characters':
-    case 'WEAK_PASSWORD':
-      return 'Password must be at least 6 characters long.';
-    case 'EMAIL_NOT_FOUND':
-      return 'No account found with this email.';
-    case 'INVALID_PASSWORD':
-    case 'INVALID_LOGIN_CREDENTIALS':
-      return 'Incorrect email or password. Please try again.';
-    case 'USER_DISABLED':
-      return 'This account has been disabled.';
-    case 'TOO_MANY_ATTEMPTS_TRY_LATER':
-      return 'Too many attempts. Please try again later.';
-    case 'CONFIGURATION_NOT_FOUND':
-    case 'OPERATION_NOT_ALLOWED':
-      return 'Google Sign-in is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.';
-    case 'INVALID_IDP_RESPONSE':
-      return 'Google authentication failed. Please verify that your debug SHA-1 fingerprint is added in Firebase Console.';
-    default:
-      return code.replace(/_/g, ' ').toLowerCase();
+// Automatic token refresh helper (native SDK handles refreshing automatically)
+export const refreshAuthToken = async () => {
+  try {
+    const authInstance = getAuthInstance();
+    if (authInstance.currentUser) {
+      return await authInstance.currentUser.getIdToken(true);
+    }
+    return null;
+  } catch (e) {
+    return null;
   }
+};
+
+// Session restore helper
+export const restoreSession = async () => {
+  return getCurrentUser();
+};
+
+/**
+ * Format Firebase error codes to user-friendly messages
+ */
+export function formatFirebaseError(codeOrMessage) {
+  if (!codeOrMessage) return 'An unexpected error occurred';
+  const str = String(codeOrMessage);
+
+  if (str.includes('email-already-in-use') || str.includes('EMAIL_EXISTS')) {
+    return 'This email is already registered. Please log in.';
+  }
+  if (str.includes('invalid-email') || str.includes('INVALID_EMAIL')) {
+    return 'Please enter a valid email address.';
+  }
+  if (str.includes('weak-password') || str.includes('WEAK_PASSWORD')) {
+    return 'Password must be at least 6 characters long.';
+  }
+  if (str.includes('user-not-found') || str.includes('EMAIL_NOT_FOUND')) {
+    return 'No account found with this email.';
+  }
+  if (
+    str.includes('wrong-password') ||
+    str.includes('INVALID_PASSWORD') ||
+    str.includes('invalid-credential') ||
+    str.includes('INVALID_LOGIN_CREDENTIALS')
+  ) {
+    return 'Incorrect email or password. Please try again.';
+  }
+  if (str.includes('user-disabled') || str.includes('USER_DISABLED')) {
+    return 'This account has been disabled.';
+  }
+  if (str.includes('too-many-requests') || str.includes('TOO_MANY_ATTEMPTS')) {
+    return 'Too many attempts. Please try again later.';
+  }
+  if (
+    str.includes('operation-not-allowed') ||
+    str.includes('CONFIGURATION_NOT_FOUND') ||
+    str.includes('OPERATION_NOT_ALLOWED')
+  ) {
+    return 'Sign-in method is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.';
+  }
+  if (str.includes('network-request-failed')) {
+    return 'Network request failed. Please check your internet connection.';
+  }
+  return str.replace(/auth\//g, '').replace(/_/g, ' ').toLowerCase();
 }
+
+export default {
+  registerWithEmail,
+  loginWithEmail,
+  loginWithGoogle,
+  logoutUser,
+  getCurrentUser,
+  onAuthStateChanged,
+  sendPasswordReset,
+  updateUserProfile,
+  deleteUserAccount,
+  saveUserProfile,
+  getUserProfile,
+  refreshAuthToken,
+  restoreSession,
+  formatFirebaseError,
+  auth,
+  database,
+};

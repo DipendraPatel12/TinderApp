@@ -20,3 +20,15 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        try {
+            compilerOptions.freeCompilerArgs.add("-Xskip-metadata-version-check")
+        } catch (Throwable t1) {
+            try {
+                kotlinOptions.freeCompilerArgs += ["-Xskip-metadata-version-check"]
+            } catch (Throwable t2) {}
+        }
+    }
+}

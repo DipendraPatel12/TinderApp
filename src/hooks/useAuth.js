@@ -47,10 +47,8 @@ export const useAuth = () => {
     return resultAction.payload;
   };
 
-  const saveProfile = async ({ photoURL, city, bio = '', hobbies = [] }) => {
-    const resultAction = await dispatch(
-      completeUserProfile({ photoURL, city, bio, hobbies })
-    );
+  const saveProfile = async (profileData = {}) => {
+    const resultAction = await dispatch(completeUserProfile(profileData));
     if (completeUserProfile.rejected.match(resultAction)) {
       throw new Error(resultAction.payload || 'Failed to complete profile');
     }

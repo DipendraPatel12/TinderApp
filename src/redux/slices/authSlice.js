@@ -62,18 +62,48 @@ export const loginWithGoogle = createAsyncThunk(
 
 export const completeUserProfile = createAsyncThunk(
   'auth/completeUserProfile',
-  async ({ photoURL, city, bio = '', hobbies = [] }, { getState, rejectWithValue }) => {
+  async (profileData = {}, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState();
       if (!auth.user?.uid) throw new Error('No user is currently signed in');
 
+      const existingData = auth.userData || {};
+
+      // Normalize existing and incoming hobbies cleanly
+      let resolvedHobbies = existingData.hobbies || [];
+      if (profileData.hobbies !== undefined) {
+        resolvedHobbies = Array.isArray(profileData.hobbies)
+          ? profileData.hobbies
+          : Object.values(profileData.hobbies || {});
+      } else if (!Array.isArray(resolvedHobbies)) {
+        resolvedHobbies = Object.values(resolvedHobbies || {});
+      }
+
       const updatedProfile = {
-        ...(auth.userData || {}),
+        ...existingData,
         uid: auth.user.uid,
-        photoURL,
-        city,
-        bio,
-        hobbies,
+        displayName:
+          profileData.displayName ||
+          existingData.displayName ||
+          auth.user?.displayName ||
+          'User',
+        age:
+          profileData.age !== undefined
+            ? profileData.age
+            : existingData.age || '',
+        photoURL:
+          profileData.photoURL !== undefined
+            ? profileData.photoURL
+            : existingData.photoURL || '',
+        city:
+          profileData.city !== undefined
+            ? profileData.city
+            : existingData.city || '',
+        bio:
+          profileData.bio !== undefined
+            ? profileData.bio
+            : existingData.bio || '',
+        hobbies: resolvedHobbies,
         isProfileCompleted: true,
         updatedAt: new Date().toISOString(),
       };
@@ -81,7 +111,7 @@ export const completeUserProfile = createAsyncThunk(
       await saveUserProfile(auth.user.uid, updatedProfile);
       return updatedProfile;
     } catch (err) {
-      return rejectWithValue(err.message || 'Failed to complete profile');
+      return rejectWithValue(err.message || 'Failed to save profile');
     }
   }
 );

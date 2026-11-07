@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
@@ -12,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './Auth.Style';
 import { Colors } from '../../constants';
 import { useAuth } from '../../hooks';
+import { AppImage } from '../../lib';
 
 const Auth = ({ navigation }) => {
   const { signInWithGoogle, loading } = useAuth();
@@ -30,9 +30,10 @@ const Auth = ({ navigation }) => {
       <View style={styles.content}>
         {/* Top Section: Logo & Tagline */}
         <View style={styles.topSection}>
-          <Image
+          <AppImage
             source={require('../../assets/images/tinder_logo_white.png')}
             style={styles.logo}
+            resizeMode="contain"
           />
           <View style={styles.taglineContainer}>
             <Text style={styles.taglineText}>
@@ -65,9 +66,10 @@ const Auth = ({ navigation }) => {
               <ActivityIndicator color={Colors.textPrimary} />
             ) : (
               <>
-                <Image
+                <AppImage
                   source={require('../../assets/images/google_logo.png')}
                   style={styles.googleIcon}
+                  resizeMode="contain"
                 />
                 <Text style={styles.googleButtonText}>Continue with Google</Text>
               </>

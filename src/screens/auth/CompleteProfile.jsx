@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
@@ -19,7 +18,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { styles } from './CompleteProfile.Style';
 import { Colors } from '../../constants';
 import { useAuth } from '../../hooks';
-import { promptImagePicker } from '../../lib';
+import { promptImagePicker, AppIcon, AppImage } from '../../lib';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
 
 const PRESET_AVATARS = [
@@ -134,10 +133,10 @@ const CompleteProfile = () => {
                 disabled={isUploading}
               >
                 {selectedAvatar ? (
-                  <Image source={{ uri: selectedAvatar }} style={styles.avatarImage} />
+                  <AppImage source={{ uri: selectedAvatar }} style={styles.avatarImage} priority="high" />
                 ) : (
                   <View style={styles.avatarPlaceholder}>
-                    <Text style={styles.avatarPlaceholderIcon}>📷</Text>
+                    <AppIcon name="camera" size={30} color={Colors.primary} />
                     <Text style={styles.avatarPlaceholderText}>Add Photo</Text>
                   </View>
                 )}
@@ -147,7 +146,7 @@ const CompleteProfile = () => {
                   </View>
                 ) : (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>+</Text>
+                    <AppIcon name="plus" size={14} color={Colors.white} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -167,7 +166,7 @@ const CompleteProfile = () => {
                     activeOpacity={0.8}
                     onPress={() => setSelectedAvatar(url)}
                   >
-                    <Image source={{ uri: url }} style={styles.presetImage} />
+                    <AppImage source={{ uri: url }} style={styles.presetImage} />
                   </TouchableOpacity>
                 ))}
               </View>
