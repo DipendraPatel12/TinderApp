@@ -54,11 +54,11 @@ const Home = ({ navigation }) => {
       },
       onPanResponderTerminationRequest: () => false,
       onPanResponderRelease: (evt, gesture) => {
-        // Dragged Left -> Like
+        // Dragged Left -> Reject (Nope)
         if (gesture.dx < -40) {
           swipeLeftRef.current();
         }
-        // Dragged Right -> Reject
+        // Dragged Right -> Like
         else if (gesture.dx > 40) {
           swipeRightRef.current();
         }
@@ -172,20 +172,20 @@ const Home = ({ navigation }) => {
         {/* Bottom Buttons */}
         {currentCard ? (
           <View style={styles.bottomBar}>
-            {/* Reject Button (Swipe Right) */}
+            {/* Reject Button (Pass / Swipe Left) */}
             <TouchableOpacity
               style={[styles.button, styles.rejectButton]}
               activeOpacity={0.7}
-              onPress={() => swipeRight()}
+              onPress={() => swipeLeft()}
             >
               <AppIcon name="times" size={30} color="#FF3F56" />
             </TouchableOpacity>
 
-            {/* Like Button (Swipe Left) */}
+            {/* Like Button (Swipe Right) */}
             <TouchableOpacity
               style={[styles.button, styles.likeButton]}
               activeOpacity={0.7}
-              onPress={() => swipeLeft()}
+              onPress={() => swipeRight()}
             >
               <AppIcon name="heart" size={28} color="#20D5A1" />
             </TouchableOpacity>

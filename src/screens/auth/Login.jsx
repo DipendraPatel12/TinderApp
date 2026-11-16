@@ -19,6 +19,7 @@ import { styles } from './Login.Style';
 import { Colors } from '../../constants';
 import { useAuth } from '../../hooks';
 import { AppIcon, AppImage } from '../../lib';
+import { sendPasswordReset } from '../../services/firebase';
 
 const Login = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,6 +29,7 @@ const Login = ({ navigation }) => {
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -53,8 +55,25 @@ const Login = ({ navigation }) => {
     }
   };
 
-  const handleForgotPassword = () => {
-    Alert.alert('Reset Password', 'A password reset link will be sent to your email.');
+  const handleForgotPassword = async () => {
+    const currentEmail = getValues('email')?.trim();
+    if (!currentEmail) {
+      Alert.alert(
+        'Email Required',
+        'Please enter your email address in the email field above, then tap "Forgot password?" to receive a reset link.'
+      );
+      return;
+    }
+
+    try {
+      await sendPasswordReset(currentEmail);
+      Alert.alert(
+        'Reset Email Sent',
+        `A password reset link has been sent to ${currentEmail}. Check your inbox and follow the link to reset your password.`
+      );
+    } catch (err) {
+      Alert.alert('Reset Failed', err.message || 'Could not send password reset email.');
+    }
   };
 
   return (

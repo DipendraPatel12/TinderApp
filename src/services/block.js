@@ -1,4 +1,4 @@
-import { getDb } from './firebase';
+import { getDb, serverTimestamp } from './firebase';
 
 /**
  * Block a user in Realtime Database under /blockedUsers/{currentUserId}/{targetUserId}
@@ -9,12 +9,11 @@ export const blockUser = async (currentUserId, targetUser) => {
 
   try {
     const db = getDb();
-    const timestamp = Date.now();
     const blockedData = {
       uid: targetUser.uid,
       displayName: targetUser.displayName || 'User',
       photoURL: targetUser.photoURL || '',
-      blockedAt: timestamp,
+      blockedAt: serverTimestamp(),
     };
 
     // 1. Record in /blockedUsers/{currentUserId}/{targetUserId}

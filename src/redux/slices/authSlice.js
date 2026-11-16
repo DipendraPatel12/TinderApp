@@ -33,7 +33,7 @@ export const registerUser = createAsyncThunk(
       const profile = {
         uid: user.uid,
         email: user.email,
-        displayName: displayName || email.split('@')[0],
+        displayName: displayName,
         isProfileCompleted: false,
         createdAt: new Date().toISOString(),
       };

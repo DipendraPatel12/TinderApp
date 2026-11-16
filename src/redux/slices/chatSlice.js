@@ -49,6 +49,10 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
+    setActiveChatMessages: (state, action) => {
+      state.activeChatMessages = action.payload;
+      state.loadingMessages = false;
+    },
     addMessageLocally: (state, action) => {
       state.activeChatMessages.push(action.payload);
     },
@@ -108,6 +112,7 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessageLocally, clearActiveChat } = chatSlice.actions;
+export const { setActiveChatMessages, addMessageLocally, clearActiveChat } =
+  chatSlice.actions;
 export default chatSlice.reducer;
 

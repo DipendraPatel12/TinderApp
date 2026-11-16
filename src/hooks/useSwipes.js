@@ -43,16 +43,16 @@ export const useSwipes = () => {
     [dispatch, deck, user?.uid, userData]
   );
 
-  const swipeLeft = useCallback(
+  const swipeRight = useCallback(
     (card = null) => {
-      swipe('like', card); // Swipe Left = Like / Approve
+      swipe('like', card); // Swipe Right = Like ❤️
     },
     [swipe]
   );
 
-  const swipeRight = useCallback(
+  const swipeLeft = useCallback(
     (card = null) => {
-      swipe('reject', card); // Swipe Right = Reject / Nope
+      swipe('reject', card); // Swipe Left = Reject / Nope ❌
     },
     [swipe]
   );

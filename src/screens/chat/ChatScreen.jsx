@@ -17,10 +17,15 @@ import styles from './ChatScreen.Style';
 // Format message time (e.g. "10:45 AM")
 const formatMessageTime = (timestamp) => {
   if (!timestamp) return '';
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const num = typeof timestamp === 'number' ? timestamp : Number(timestamp);
+  if (isNaN(num)) return '';
+  const d = new Date(num);
+  return isNaN(d.getTime())
+    ? ''
+    : d.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 };
 
 const ChatScreen = ({ route, navigation }) => {
@@ -37,6 +42,7 @@ const ChatScreen = ({ route, navigation }) => {
     send,
     closeChat,
     addLocalMessage,
+    subscribeToMatch,
   } = useChat();
 
   // Auto-scroll to latest message when keyboard pops up
@@ -54,15 +60,20 @@ const ChatScreen = ({ route, navigation }) => {
     };
   }, []);
 
-  // Load chat messages on mount
+  // Load chat messages on mount & subscribe to realtime updates
   useEffect(() => {
+    let unsubscribe = () => {};
     if (match?.id) {
       openChat(match.id);
+      if (!match.id.includes('demo')) {
+        unsubscribe = subscribeToMatch(match.id);
+      }
     }
     return () => {
+      unsubscribe();
       closeChat();
     };
-  }, [match?.id, openChat, closeChat]);
+  }, [match?.id, openChat, closeChat, subscribeToMatch]);
 
   // Handle sending a message
   const handleSend = async () => {

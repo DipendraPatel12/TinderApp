@@ -6,7 +6,9 @@ import {
   sendMessage,
   clearActiveChat,
   addMessageLocally,
+  setActiveChatMessages,
 } from '../redux/slices/chatSlice';
+import { subscribeToMessages } from '../services/chat';
 
 export const useChat = () => {
   const dispatch = useDispatch();
@@ -50,6 +52,23 @@ export const useChat = () => {
     [dispatch]
   );
 
+  const syncMessages = useCallback(
+    (messages) => {
+      dispatch(setActiveChatMessages(messages));
+    },
+    [dispatch]
+  );
+
+  const subscribeToMatch = useCallback(
+    (matchId) => {
+      if (!matchId) return () => {};
+      return subscribeToMessages(matchId, (messages) => {
+        dispatch(setActiveChatMessages(messages));
+      });
+    },
+    [dispatch]
+  );
+
   return {
     matches,
     activeChatMessages,
@@ -62,6 +81,8 @@ export const useChat = () => {
     send,
     closeChat,
     addLocalMessage,
+    syncMessages,
+    subscribeToMatch,
   };
 };
 

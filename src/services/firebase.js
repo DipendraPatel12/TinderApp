@@ -18,7 +18,7 @@ import {
 import { firebaseConfig } from '../config';
 import { signOutGoogle } from '../lib/googleAuth';
 
-export { firebaseConfig };
+export { firebaseConfig, serverTimestamp };
 
 // Native Database instance accessor
 export const getDb = () => {
@@ -69,7 +69,7 @@ export const registerWithEmail = async (email, password, displayName = '') => {
       password
     );
     const nativeUser = userCredential.user;
-    const resolvedDisplayName = displayName || email.split('@')[0];
+    const resolvedDisplayName = displayName;
 
     try {
       await updateProfile(nativeUser, { displayName: resolvedDisplayName });

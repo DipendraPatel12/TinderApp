@@ -1,4 +1,4 @@
-import { getDb } from './firebase';
+import { getDb, serverTimestamp } from './firebase';
 
 // Fallback seed profiles for initial demo/testing when database has no other users
 const DEFAULT_CANDIDATES = [
@@ -153,7 +153,6 @@ export const recordSwipe = async (
     // 4. If mutual like, create a match!
     if (targetLikedMe) {
       const matchId = [currentUserId, targetUser.uid].sort().join('_');
-      const timestamp = Date.now();
 
       const matchData = {
         id: matchId,
@@ -173,9 +172,9 @@ export const recordSwipe = async (
             photoURL: targetUser.photoURL || '',
           },
         },
-        createdAt: timestamp,
+        createdAt: serverTimestamp(),
         lastMessage: 'You matched! Say hello 👋',
-        lastMessageTimestamp: timestamp,
+        lastMessageTimestamp: serverTimestamp(),
       };
 
       try {
