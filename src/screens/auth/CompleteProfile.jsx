@@ -18,12 +18,12 @@ import { useForm, Controller } from 'react-hook-form';
 import { styles } from './CompleteProfile.Style';
 import { Colors } from '../../constants';
 import { useAuth } from '../../hooks';
-import { promptImagePicker, AppIcon, AppImage } from '../../lib';
+import { promptImagePicker, AppIcon, AppImage, useAppCamera } from '../../lib';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
 
 const PRESET_AVATARS = [
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80',
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80',
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80',
 ];
@@ -38,12 +38,13 @@ const AVAILABLE_HOBBIES = [
   'Movies',
   'Cooking',
   'Art',
+
 ];
 
 const CompleteProfile = () => {
   const { user, saveProfile, loading } = useAuth();
   const [selectedAvatar, setSelectedAvatar] = useState(PRESET_AVATARS[0]);
-  const [selectedHobbies, setSelectedHobbies] = useState(['Traveling', 'Music']);
+  const [selectedHobbies, setSelectedHobbies] = useState([]);
   const [focusedField, setFocusedField] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -58,21 +59,26 @@ const CompleteProfile = () => {
     },
   });
 
+  const handleImageUpload = async (image) => {
+    setIsUploading(true);
+    try {
+      const cloudinaryUrl = await uploadImageToCloudinary(image);
+      setSelectedAvatar(cloudinaryUrl);
+    } catch (err) {
+      Alert.alert('Upload Error', err.message || 'Could not upload to Cloudinary');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const { openAppCamera, CameraComponent } = useAppCamera(handleImageUpload);
+
   const handlePickImage = () => {
     promptImagePicker({
       title: 'Profile Photo',
       message: 'Upload your photo to Cloudinary',
-      onImageSelected: async (image) => {
-        setIsUploading(true);
-        try {
-          const cloudinaryUrl = await uploadImageToCloudinary(image);
-          setSelectedAvatar(cloudinaryUrl);
-        } catch (err) {
-          Alert.alert('Upload Error', err.message || 'Could not upload to Cloudinary');
-        } finally {
-          setIsUploading(false);
-        }
-      },
+      onTakePhoto: openAppCamera,
+      onImageSelected: handleImageUpload,
       onError: (err) => {
         Alert.alert('Error', err.message || 'Could not select photo');
       },
@@ -285,6 +291,7 @@ const CompleteProfile = () => {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+      {CameraComponent}
     </SafeAreaView>
   );
 };

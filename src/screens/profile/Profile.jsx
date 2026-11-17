@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks';
 import { Colors, vs } from '../../constants';
-import { promptImagePicker, AppIcon, AppImage } from '../../lib';
+import { promptImagePicker, AppIcon, AppImage, useAppCamera } from '../../lib';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
 import styles from './Profile.Style';
 
@@ -19,23 +19,28 @@ const Profile = ({ navigation }) => {
   const { user, userData, saveProfile, logout } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
 
+  const handleImageUpload = async (image) => {
+    setIsUploading(true);
+    try {
+      const uploadedUrl = await uploadImageToCloudinary(image);
+      await saveProfile({
+        photoURL: uploadedUrl,
+      });
+    } catch (err) {
+      Alert.alert('Upload Error', err.message || 'Failed to upload photo');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const { openAppCamera, CameraComponent } = useAppCamera(handleImageUpload);
+
   const handleUpdateAvatar = () => {
     promptImagePicker({
       title: 'Change Profile Photo',
       message: 'Upload a new photo to Cloudinary',
-      onImageSelected: async (image) => {
-        setIsUploading(true);
-        try {
-          const uploadedUrl = await uploadImageToCloudinary(image);
-          await saveProfile({
-            photoURL: uploadedUrl,
-          });
-        } catch (err) {
-          Alert.alert('Upload Error', err.message || 'Failed to upload photo');
-        } finally {
-          setIsUploading(false);
-        }
-      },
+      onTakePhoto: openAppCamera,
+      onImageSelected: handleImageUpload,
       onError: (err) => {
         Alert.alert('Error', err.message || 'Could not access image');
       },
@@ -176,6 +181,7 @@ const Profile = ({ navigation }) => {
 
         <View style={{ height: vs(30) }} />
       </ScrollView>
+      {CameraComponent}
     </SafeAreaView>
   );
 };

@@ -5,9 +5,6 @@ const DEFAULT_OPTIONS = {
   mediaType: 'photo',
   saveToPhotos: false,
   includeBase64: false,
-  maxWidth: 1200,
-  maxHeight: 1200,
-  quality: 0.8,
 };
 
 const formatAsset = (asset) => {
@@ -26,6 +23,11 @@ const requestCameraPermission = async () => {
   if (Platform.OS !== 'android') return true;
 
   try {
+    const alreadyGranted = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.CAMERA
+    );
+    if (alreadyGranted) return true;
+
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.CAMERA,
       {
@@ -136,20 +138,26 @@ export const promptImagePicker = ({
   title = 'Select Photo',
   message = 'Choose an option to upload your photo',
   onImageSelected,
+  onTakePhoto,
   onError,
   options = {},
 }) => {
   Alert.alert(title, message, [
     {
       text: 'Take Photo',
-      onPress: async () => {
-        try {
-          const image = await openCamera(options);
-          if (image && onImageSelected) {
-            onImageSelected(image);
-          }
-        } catch (err) {
-          if (onError) onError(err);
+      onPress: () => {
+        if (onTakePhoto) {
+          onTakePhoto();
+        } else {
+          openCamera(options)
+            .then((image) => {
+              if (image && onImageSelected) {
+                onImageSelected(image);
+              }
+            })
+            .catch((err) => {
+              if (onError) onError(err);
+            });
         }
       },
     },

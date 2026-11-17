@@ -6,3 +6,5 @@ export * from './AppImage';
 export { default as AppImage } from './AppImage';
 export * from './AppList';
 export { default as AppList } from './AppList';
+export * from './AppCamera';
+export { default as AppCamera } from './AppCamera';

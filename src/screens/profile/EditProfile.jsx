@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks';
-import { AppIcon, AppImage, promptImagePicker } from '../../lib';
+import { AppIcon, AppImage, promptImagePicker, useAppCamera } from '../../lib';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
 import { Colors } from '../../constants';
 import styles from './EditProfile.Style';
@@ -63,21 +63,26 @@ const EditProfile = ({ navigation }) => {
     }
   };
 
+  const handleImageUpload = async (image) => {
+    setIsUploading(true);
+    try {
+      const uploadedUrl = await uploadImageToCloudinary(image);
+      setPhotoURL(uploadedUrl);
+    } catch (err) {
+      Alert.alert('Upload Failed', err.message || 'Could not upload photo.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const { openAppCamera, CameraComponent } = useAppCamera(handleImageUpload);
+
   const handleChangePhoto = () => {
     promptImagePicker({
       title: 'Change Profile Photo',
       message: 'Take a new photo or select from gallery',
-      onImageSelected: async (image) => {
-        setIsUploading(true);
-        try {
-          const uploadedUrl = await uploadImageToCloudinary(image);
-          setPhotoURL(uploadedUrl);
-        } catch (err) {
-          Alert.alert('Upload Failed', err.message || 'Could not upload photo.');
-        } finally {
-          setIsUploading(false);
-        }
-      },
+      onTakePhoto: openAppCamera,
+      onImageSelected: handleImageUpload,
       onError: (err) => {
         Alert.alert('Error', err.message || 'Could not access image.');
       },
@@ -264,6 +269,7 @@ const EditProfile = ({ navigation }) => {
           )}
         </TouchableOpacity>
       </ScrollView>
+      {CameraComponent}
     </SafeAreaView>
   );
 };
