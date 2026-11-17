@@ -36,9 +36,8 @@ export const useAuth = () => {
   };
 
   const signInWithGoogle = async () => {
-    // Triggers Android's native default Google Account Chooser
     const googleUser = await promptGoogleSignIn();
-    if (!googleUser) return null; // Cancelled by user
+    if (!googleUser) return null;
 
     const resultAction = await dispatch(loginWithGoogleAction(googleUser));
     if (loginWithGoogleAction.rejected.match(resultAction)) {

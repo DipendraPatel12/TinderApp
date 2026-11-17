@@ -96,7 +96,6 @@ const CompleteProfile = () => {
         bio: data.bio.trim(),
         hobbies: selectedHobbies,
       });
-      // RootNavigation will automatically route to AppNavigation when isProfileCompleted is true
     } catch (err) {
       Alert.alert('Save Failed', err.message || 'Could not save profile.');
     }
@@ -116,7 +115,6 @@ const CompleteProfile = () => {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Title Header */}
             <View style={styles.titleContainer}>
               <Text style={styles.title}>Welcome, {user?.displayName || 'Friend'}!</Text>
               <Text style={styles.subtitle}>
@@ -124,7 +122,6 @@ const CompleteProfile = () => {
               </Text>
             </View>
 
-            {/* Profile Avatar Selection */}
             <View style={styles.avatarSection}>
               <TouchableOpacity
                 style={styles.avatarContainer}
@@ -154,7 +151,6 @@ const CompleteProfile = () => {
                 Tap photo to upload from Camera or Gallery
               </Text>
 
-              {/* Avatar Presets */}
               <View style={styles.avatarPresetsRow}>
                 {PRESET_AVATARS.map((url, idx) => (
                   <TouchableOpacity
@@ -172,9 +168,7 @@ const CompleteProfile = () => {
               </View>
             </View>
 
-            {/* Form */}
             <View style={styles.form}>
-              {/* City */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Your City / Location</Text>
                 <Controller
@@ -216,7 +210,6 @@ const CompleteProfile = () => {
                 )}
               </View>
 
-              {/* About / Bio */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>About You (Bio)</Text>
                 <Controller
@@ -249,7 +242,6 @@ const CompleteProfile = () => {
                 />
               </View>
 
-              {/* Hobbies / Interests */}
               <Text style={styles.hobbiesLabel}>Passions & Hobbies</Text>
               <View style={styles.hobbiesContainer}>
                 {AVAILABLE_HOBBIES.map((hobby) => {
@@ -277,7 +269,6 @@ const CompleteProfile = () => {
                 })}
               </View>
 
-              {/* Save Button */}
               <TouchableOpacity
                 style={styles.saveButton}
                 activeOpacity={0.85}

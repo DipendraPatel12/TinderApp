@@ -22,7 +22,6 @@ const formatAsset = (asset) => {
   };
 };
 
-// Request Android camera runtime permission
 const requestCameraPermission = async () => {
   if (Platform.OS !== 'android') return true;
 
@@ -43,7 +42,6 @@ const requestCameraPermission = async () => {
   }
 };
 
-// Request Android gallery runtime permission (Android 12 and below)
 const requestGalleryPermission = async () => {
   if (Platform.OS !== 'android') return true;
   if (Platform.Version >= 33) return true;

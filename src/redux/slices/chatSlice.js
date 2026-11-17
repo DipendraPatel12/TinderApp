@@ -63,7 +63,6 @@ const chatSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // loadUserMatches
       .addCase(loadUserMatches.pending, (state) => {
         state.loadingMatches = true;
         state.error = null;
@@ -78,7 +77,6 @@ const chatSlice = createSlice({
         state.error = action.payload;
       })
 
-      // loadChatMessages
       .addCase(loadChatMessages.pending, (state) => {
         state.loadingMessages = true;
       })
@@ -91,17 +89,14 @@ const chatSlice = createSlice({
         state.error = action.payload;
       })
 
-      // sendMessage
       .addCase(sendMessage.fulfilled, (state, action) => {
         const { message, matchId } = action.payload;
         if (message) {
-          // Check if message is already added
           const exists = state.activeChatMessages.some((m) => m.id === message.id);
           if (!exists) {
             state.activeChatMessages.push(message);
           }
 
-          // Update last message in matches list
           const matchIndex = state.matches.findIndex((m) => m.id === matchId);
           if (matchIndex !== -1) {
             state.matches[matchIndex].lastMessage = message.text;

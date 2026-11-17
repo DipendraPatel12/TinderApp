@@ -12,9 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChat } from '../../hooks';
 import { AppIcon, AppImage, AppList } from '../../lib';
+import { Colors } from '../../constants';
 import styles from './ChatScreen.Style';
 
-// Format message time (e.g. "10:45 AM")
 const formatMessageTime = (timestamp) => {
   if (!timestamp) return '';
   const num = typeof timestamp === 'number' ? timestamp : Number(timestamp);
@@ -41,11 +41,9 @@ const ChatScreen = ({ route, navigation }) => {
     openChat,
     send,
     closeChat,
-    addLocalMessage,
     subscribeToMatch,
   } = useChat();
 
-  // Auto-scroll to latest message when keyboard pops up
   useEffect(() => {
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
@@ -60,14 +58,11 @@ const ChatScreen = ({ route, navigation }) => {
     };
   }, []);
 
-  // Load chat messages on mount & subscribe to realtime updates
   useEffect(() => {
     let unsubscribe = () => {};
     if (match?.id) {
       openChat(match.id);
-      if (!match.id.includes('demo')) {
-        unsubscribe = subscribeToMatch(match.id);
-      }
+      unsubscribe = subscribeToMatch(match.id);
     }
     return () => {
       unsubscribe();
@@ -75,34 +70,17 @@ const ChatScreen = ({ route, navigation }) => {
     };
   }, [match?.id, openChat, closeChat, subscribeToMatch]);
 
-  // Handle sending a message
   const handleSend = async () => {
     const textToSend = inputText.trim();
     if (!textToSend || !match?.id) return;
 
     setInputText('');
 
-    // Send through Redux & Realtime Database
     await send(match.id, textToSend);
 
-    // Scroll to newest message
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
-
-    // If testing with demo match, simulate instant reply after 1.5s
-    if (match.id.includes('demo')) {
-      setTimeout(() => {
-        const replyMessage = {
-          id: `reply_${Date.now()}`,
-          senderId: otherUser.uid,
-          text: "That's wonderful! Really glad we connected on Tinder 😊",
-          timestamp: Date.now(),
-        };
-        addLocalMessage(replyMessage);
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 1500);
-    }
   };
 
   const renderMessageItem = ({ item }) => {
@@ -143,16 +121,15 @@ const ChatScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+      <StatusBar backgroundColor={Colors.white} barStyle="dark-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <AppIcon name="chevron-left" size={20} color="#222222" />
+          <AppIcon name="chevron-left" size={20} color={Colors.textHeading} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -180,11 +157,10 @@ const ChatScreen = ({ route, navigation }) => {
           activeOpacity={0.7}
           onPress={() => navigation.navigate('UserProfile', { profile: otherUser })}
         >
-          <AppIcon name="info-circle" size={20} color="#888888" />
+          <AppIcon name="info-circle" size={20} color={Colors.textDim} />
         </TouchableOpacity>
       </View>
 
-      {/* Messages List & Input */}
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -202,12 +178,11 @@ const ChatScreen = ({ route, navigation }) => {
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
 
-        {/* Message Input Bar */}
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
             placeholder="Type a message..."
-            placeholderTextColor="#999999"
+            placeholderTextColor={Colors.textPlaceholder}
             value={inputText}
             onChangeText={setInputText}
             multiline
@@ -232,7 +207,7 @@ const ChatScreen = ({ route, navigation }) => {
             <AppIcon
               name="paper-plane"
               size={18}
-              color={inputText.trim().length > 0 ? '#FFFFFF' : '#FE3C72'}
+              color={inputText.trim().length > 0 ? Colors.white : Colors.primary}
             />
           </TouchableOpacity>
         </View>

@@ -27,10 +27,8 @@ export const useSwipes = () => {
       const targetUser = cardToSwipe || deck[0];
       if (!targetUser) return;
 
-      // Optimistically pop card from deck immediately
       dispatch(popTopCard());
 
-      // Save swipe and check for match in background
       dispatch(
         swipeCard({
           currentUserId: user?.uid,
@@ -45,14 +43,14 @@ export const useSwipes = () => {
 
   const swipeRight = useCallback(
     (card = null) => {
-      swipe('like', card); // Swipe Right = Like ❤️
+      swipe('like', card);
     },
     [swipe]
   );
 
   const swipeLeft = useCallback(
     (card = null) => {
-      swipe('reject', card); // Swipe Left = Reject / Nope ❌
+      swipe('reject', card);
     },
     [swipe]
   );

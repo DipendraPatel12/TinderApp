@@ -1,5 +1,5 @@
-import { StyleSheet, Platform } from 'react-native';
-import { Colors, scale, verticalScale, moderateScale, Fonts } from '../../constants';
+import { StyleSheet } from 'react-native';
+import { Colors, scale, verticalScale, moderateScale } from '../../constants';
 
 export const styles = StyleSheet.create({
   safeArea: {
@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontSize: moderateScale(28),
-    fontWeight: Fonts.weight.bold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.5,
   },

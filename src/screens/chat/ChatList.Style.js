@@ -1,17 +1,16 @@
 import { StyleSheet } from 'react-native';
-import { Colors, s, vs, ms } from '../../constants';
+import { s, vs, ms, Colors } from '../../constants';
 
 export default StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
   },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -19,15 +18,14 @@ export default StyleSheet.create({
     paddingHorizontal: s(20),
     paddingVertical: vs(14),
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: Colors.surfaceMuted,
   },
   headerTitle: {
     fontSize: ms(24),
     fontWeight: '800',
-    color: '#222222',
+    color: Colors.textHeading,
   },
 
-  // Section Titles
   sectionHeader: {
     paddingHorizontal: s(20),
     paddingTop: vs(16),
@@ -36,12 +34,11 @@ export default StyleSheet.create({
   sectionTitle: {
     fontSize: ms(14),
     fontWeight: '700',
-    color: '#FE3C72',
+    color: Colors.primary,
     textTransform: 'uppercase',
     letterSpacing: ms(0.8),
   },
 
-  // New Matches Horizontal Row
   matchesScroll: {
     paddingHorizontal: s(16),
     paddingBottom: vs(14),
@@ -56,7 +53,7 @@ export default StyleSheet.create({
     height: ms(66),
     borderRadius: ms(33),
     borderWidth: 2.5,
-    borderColor: '#FE3C72',
+    borderColor: Colors.primary,
     padding: 2,
     justifyContent: 'center',
     alignItems: 'center',
@@ -70,26 +67,24 @@ export default StyleSheet.create({
   matchAvatarName: {
     fontSize: ms(12),
     fontWeight: '600',
-    color: '#333333',
+    color: Colors.textDark,
     textAlign: 'center',
   },
 
-  // Divider
   divider: {
     height: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.surfaceAlt,
     marginHorizontal: s(20),
     marginVertical: vs(4),
   },
 
-  // Conversations List Item
   conversationItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(20),
     paddingVertical: vs(14),
     borderBottomWidth: 1,
-    borderBottomColor: '#F9F9F9',
+    borderBottomColor: Colors.surfaceCard,
   },
   convAvatar: {
     width: ms(56),
@@ -110,18 +105,17 @@ export default StyleSheet.create({
   convName: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#222222',
+    color: Colors.textHeading,
   },
   convTime: {
     fontSize: ms(12),
-    color: '#999999',
+    color: Colors.textPlaceholder,
   },
   convMessage: {
     fontSize: ms(13),
-    color: '#777777',
+    color: Colors.textLight,
   },
 
-  // Empty State
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -135,15 +129,14 @@ export default StyleSheet.create({
   emptyTitle: {
     fontSize: ms(18),
     fontWeight: '700',
-    color: '#333333',
+    color: Colors.textDark,
     marginBottom: vs(6),
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: ms(13),
-    color: '#888888',
+    color: Colors.textDim,
     textAlign: 'center',
     lineHeight: ms(18),
   },
 });
-

@@ -1,16 +1,22 @@
 export const Colors = {
-  // Brand & Gradient
   primary: '#FE3C72',
   secondary: '#FF6036',
+  primaryLight: '#FFF0F4',
+  primaryBorder: '#FFDCE4',
+  primaryMuted: '#FFD5DB',
+  primaryTransparent: 'rgba(254, 60, 114, 0.08)',
 
-  // Action / Match Buttons
   like: '#20D5A1',
   nope: '#FF3F56',
+  nopeLight: '#FFF5F6',
   superLike: '#2DB1FF',
   boost: '#A644FF',
   rewind: '#FDB833',
 
-  // Neutrals & Backgrounds
+  blue: '#3B82F6',
+  blueLight: '#F0F4FF',
+  green: '#4CAF50',
+
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
@@ -18,28 +24,52 @@ export const Colors = {
   backgroundLight: '#F5F7FA',
   cardBackground: '#FFFFFF',
   surface: '#F4F5F7',
+  surfaceLight: '#FAFAFA',
+  surfaceAlt: '#F5F5F5',
+  surfaceMuted: '#F0F0F0',
+  surfaceMutedAlt: '#F6F6F6',
+  surfaceCard: '#F9F9F9',
 
-  // Typography
   textPrimary: '#212529',
+  textHeading: '#222222',
+  textDark: '#333333',
+  textBody: '#444444',
   textSecondary: '#6C757D',
+  textSub: '#555555',
+  textGray: '#666666',
+  textLight: '#777777',
   textMuted: '#ADB5BD',
+  textDim: '#888888',
+  textPlaceholder: '#999999',
+  textDisabled: '#AAAAAA',
+  textHint: '#B0B0B0',
   textWhite: '#FFFFFF',
 
-  // Borders & Dividers
   border: '#E8E6EA',
   borderLight: '#F1F1F4',
+  borderLightAlt: '#EEEEEE',
+  borderMedium: '#DDDDDD',
+  borderAlt: '#E0E0E0',
+  borderDark: '#CCCCCC',
   divider: '#EBEBF0',
 
-  // Status
   success: '#20D5A1',
   error: '#FF3F56',
   warning: '#FDB833',
   info: '#2DB1FF',
 
-  // Overlay
   overlay: 'rgba(0, 0, 0, 0.4)',
   overlayDark: 'rgba(0, 0, 0, 0.7)',
+  overlayModal: 'rgba(15, 15, 20, 0.92)',
+  overlayDarker: 'rgba(0, 0, 0, 0.85)',
+  overlayMedium: 'rgba(0, 0, 0, 0.65)',
+  overlaySemi: 'rgba(0, 0, 0, 0.6)',
+  overlaySoft: 'rgba(0, 0, 0, 0.55)',
+  overlayHalf: 'rgba(0, 0, 0, 0.5)',
+  overlayLight: 'rgba(0, 0, 0, 0.45)',
+  overlayWhiteSubtle: 'rgba(255, 255, 255, 0.25)',
+  overlayWhiteMedium: 'rgba(255, 255, 255, 0.4)',
+  overlayWhiteHigh: 'rgba(255, 255, 255, 0.75)',
 };
 
 export default Colors;
-

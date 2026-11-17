@@ -6,9 +6,9 @@ import {
   logoutUser as firebaseLogoutUser,
   getUserProfile,
   saveUserProfile,
+  serverTimestamp,
 } from '../../services/firebase';
 
-// Async Thunks
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
@@ -35,7 +35,7 @@ export const registerUser = createAsyncThunk(
         email: user.email,
         displayName: displayName,
         isProfileCompleted: false,
-        createdAt: new Date().toISOString(),
+        createdAt: Date.now(),
       };
       return { user, userData: profile };
     } catch (err) {
@@ -69,7 +69,6 @@ export const completeUserProfile = createAsyncThunk(
 
       const existingData = auth.userData || {};
 
-      // Normalize existing and incoming hobbies cleanly
       let resolvedHobbies = existingData.hobbies || [];
       if (profileData.hobbies !== undefined) {
         resolvedHobbies = Array.isArray(profileData.hobbies)
@@ -79,6 +78,7 @@ export const completeUserProfile = createAsyncThunk(
         resolvedHobbies = Object.values(resolvedHobbies || {});
       }
 
+      const now = Date.now();
       const updatedProfile = {
         ...existingData,
         uid: auth.user.uid,
@@ -105,11 +105,17 @@ export const completeUserProfile = createAsyncThunk(
             : existingData.bio || '',
         hobbies: resolvedHobbies,
         isProfileCompleted: true,
-        updatedAt: new Date().toISOString(),
       };
 
-      await saveUserProfile(auth.user.uid, updatedProfile);
-      return updatedProfile;
+      await saveUserProfile(auth.user.uid, {
+        ...updatedProfile,
+        updatedAt: serverTimestamp(),
+      });
+
+      return {
+        ...updatedProfile,
+        updatedAt: now,
+      };
     } catch (err) {
       return rejectWithValue(err.message || 'Failed to save profile');
     }
@@ -149,7 +155,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -165,7 +170,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Register
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -181,7 +185,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Google Login
       .addCase(loginWithGoogle.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -197,7 +200,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Complete Profile
       .addCase(completeUserProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -212,7 +214,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Logout
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.userData = null;

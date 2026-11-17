@@ -45,7 +45,7 @@ const swipesSlice = createSlice({
   reducers: {
     popTopCard: (state) => {
       if (state.deck.length > 0) {
-        state.deck.shift(); // Remove top card
+        state.deck.shift();
       }
     },
     closeMatchModal: (state) => {
@@ -62,7 +62,6 @@ const swipesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // loadCandidates
       .addCase(loadCandidates.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -77,11 +76,9 @@ const swipesSlice = createSlice({
         state.error = action.payload;
       })
 
-      // swipeCard
       .addCase(swipeCard.fulfilled, (state, action) => {
         const { targetUser, direction, isMatch, matchData } = action.payload;
         state.lastSwipe = { targetUser, direction };
-        // If it resulted in a mutual match, open celebration modal
         if (isMatch && matchData) {
           state.showMatchModal = true;
           state.matchedUser = matchData.matchedUser;

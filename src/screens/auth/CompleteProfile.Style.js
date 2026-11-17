@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Colors, scale, verticalScale, moderateScale, Fonts } from '../../constants';
+import { Colors, scale, verticalScale, moderateScale } from '../../constants';
 
 export const styles = StyleSheet.create({
   safeArea: {
@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
   },
   title: {
     fontSize: moderateScale(28),
-    fontWeight: Fonts.weight.bold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.5,
   },
@@ -53,7 +53,7 @@ export const styles = StyleSheet.create({
   },
   uploadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: Colors.overlayLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -190,7 +190,7 @@ export const styles = StyleSheet.create({
   },
   hobbyChipSelected: {
     borderColor: Colors.primary,
-    backgroundColor: 'rgba(254, 60, 114, 0.08)',
+    backgroundColor: Colors.primaryTransparent,
   },
   hobbyText: {
     fontSize: moderateScale(13),

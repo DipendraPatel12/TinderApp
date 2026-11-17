@@ -1,23 +1,5 @@
 import { getDb, serverTimestamp } from './firebase';
 
-// Demo fallback match for testing chat immediately
-const DEMO_MATCH = {
-  id: 'demo_match_sophia',
-  otherUser: {
-    uid: 'demo_user_sophia',
-    displayName: 'Sophia Chen',
-    photoURL:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-    city: 'New York',
-  },
-  lastMessage: 'You matched! Say hello 👋',
-  lastMessageTimestamp: Date.now() - 1000 * 60 * 10, // 10 mins ago
-  createdAt: Date.now() - 1000 * 60 * 60,
-};
-
-/**
- * Fetch all matches for the current user from Realtime Database
- */
 export const fetchUserMatches = async (currentUserId) => {
   try {
     let matchesData = {};
@@ -40,11 +22,9 @@ export const fetchUserMatches = async (currentUserId) => {
       }
     }
 
-    // Filter matches where current user is a participant and other user is not blocked
     const userMatches = Object.values(matchesData)
       .filter((match) => match?.users && match.users[currentUserId])
       .map((match) => {
-        // Find the OTHER user in this match
         const otherUserId = Object.keys(match.users).find((id) => id !== currentUserId);
         const otherParticipant = match.participants
           ? match.participants[otherUserId]
@@ -75,14 +55,6 @@ export const fetchUserMatches = async (currentUserId) => {
       .filter((m) => !myBlocked[m.otherUser.uid])
       .sort((a, b) => (Number(b.lastMessageTimestamp) || 0) - (Number(a.lastMessageTimestamp) || 0));
 
-    // If no real matches exist yet and demo is not blocked, provide demo match so user can test chat right away
-    if (userMatches.length === 0) {
-      if (!myBlocked[DEMO_MATCH.otherUser.uid]) {
-        return [DEMO_MATCH];
-      }
-      return [];
-    }
-
     return userMatches;
   } catch (error) {
     console.log('Error in fetchUserMatches:', error.message);
@@ -90,9 +62,6 @@ export const fetchUserMatches = async (currentUserId) => {
   }
 };
 
-/**
- * Fetch all messages for a specific match from Realtime Database
- */
 export const fetchMessages = async (matchId) => {
   try {
     const db = getDb();
@@ -102,22 +71,9 @@ export const fetchMessages = async (matchId) => {
       .once('value');
     const data = snapshot.val() || {};
 
-    // Convert messages object to sorted array
     const messageList = Object.values(data).sort(
       (a, b) => (a.timestamp || 0) - (b.timestamp || 0)
     );
-
-    // If demo match and empty, provide welcome message
-    if (matchId === DEMO_MATCH.id && messageList.length === 0) {
-      return [
-        {
-          id: 'welcome_1',
-          senderId: DEMO_MATCH.otherUser.uid,
-          text: 'Hey! Nice to match with you! How is your day going? 😊',
-          timestamp: Date.now() - 1000 * 60 * 5,
-        },
-      ];
-    }
 
     return messageList;
   } catch (error) {
@@ -126,12 +82,6 @@ export const fetchMessages = async (matchId) => {
   }
 };
 
-/**
- * Subscribe to realtime message updates for a match with listener cleanup
- * @param {string} matchId
- * @param {function} callback
- * @returns {function} Unsubscribe cleanup function
- */
 export const subscribeToMessages = (matchId, callback) => {
   if (!matchId) return () => {};
   const db = getDb();
@@ -152,9 +102,6 @@ export const subscribeToMessages = (matchId, callback) => {
   };
 };
 
-/**
- * Send a chat message using native push() and update() with serverTimestamp()
- */
 export const sendChatMessage = async (matchId, senderId, text) => {
   if (!text || !text.trim() || !matchId) return null;
 
@@ -164,7 +111,6 @@ export const sendChatMessage = async (matchId, senderId, text) => {
   const newMsgRef = messagesRef.push();
   const messageId = newMsgRef.key;
 
-  // Firebase payload: write server-synced timestamp to avoid device clock skew
   const messagePayload = {
     id: messageId,
     senderId,
@@ -172,7 +118,6 @@ export const sendChatMessage = async (matchId, senderId, text) => {
     timestamp: serverTimestamp(),
   };
 
-  // Optimistic message returned to caller / Redux with numeric timestamp
   const optimisticMessage = {
     id: messageId,
     senderId,
@@ -181,10 +126,8 @@ export const sendChatMessage = async (matchId, senderId, text) => {
   };
 
   try {
-    // 1. Save message with native set()
     await newMsgRef.set(messagePayload);
 
-    // 2. Update match's last message with native update() and serverTimestamp
     await db.ref(`/matches/${matchId}`).update({
       lastMessage: text.trim(),
       lastMessageTimestamp: serverTimestamp(),

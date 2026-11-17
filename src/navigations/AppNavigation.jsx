@@ -9,21 +9,21 @@ import UserProfile from '../screens/profile/UserProfile';
 import EditProfile from '../screens/profile/EditProfile';
 import BlockedUsers from '../screens/profile/BlockedUsers';
 import { AppIcon } from '../lib';
+import { Colors } from '../constants';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// 1. Bottom Tab Navigator (Explore, Matches, Profile)
 const MainTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#FE3C72',
-        tabBarInactiveTintColor: '#999999',
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.textPlaceholder,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#EEEEEE',
+          backgroundColor: Colors.white,
+          borderTopColor: Colors.borderLightAlt,
           height: 58,
           paddingBottom: 6,
           paddingTop: 6,
@@ -34,7 +34,6 @@ const MainTabs = () => {
         },
       }}
     >
-      {/* Explore Tab (Card Swiping) */}
       <Tab.Screen
         name="Home"
         component={Home}
@@ -46,7 +45,6 @@ const MainTabs = () => {
         }}
       />
 
-      {/* Matches & Conversations List */}
       <Tab.Screen
         name="ChatList"
         component={ChatList}
@@ -58,7 +56,6 @@ const MainTabs = () => {
         }}
       />
 
-      {/* User Profile Tab */}
       <Tab.Screen
         name="Profile"
         component={Profile}
@@ -73,7 +70,6 @@ const MainTabs = () => {
   );
 };
 
-// 2. Root App Stack (MainTabs + Fullscreen Screens)
 const AppNavigation = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

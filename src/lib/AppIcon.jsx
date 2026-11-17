@@ -1,11 +1,12 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { Colors } from '../constants';
 
 export const AppIcon = ({
   name,
   size = 24,
-  color = '#000000',
+  color = Colors.black,
   style,
   onPress,
   ...rest

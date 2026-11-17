@@ -12,7 +12,6 @@ import {
 } from '@react-native-firebase/auth';
 import {
   getDatabase,
-  ref,
   serverTimestamp,
 } from '@react-native-firebase/database';
 import { firebaseConfig } from '../config';
@@ -20,17 +19,14 @@ import { signOutGoogle } from '../lib/googleAuth';
 
 export { firebaseConfig, serverTimestamp };
 
-// Native Database instance accessor
 export const getDb = () => {
   return getDatabase(undefined, firebaseConfig.databaseURL);
 };
 
-// Native Auth instance accessor
 export const getAuthInstance = () => {
   return getAuth();
 };
 
-// Compatibility namespaces for native SDK syntax database().ref() and auth().signIn...
 export const auth = () => getAuthInstance();
 auth.GoogleAuthProvider = GoogleAuthProvider;
 
@@ -41,7 +37,6 @@ database.ServerValue = {
   },
 };
 
-// Format native Firebase user object to clean, serializable plain object
 export const formatUser = (nativeUser, overrideDisplayName = null) => {
   if (!nativeUser) return null;
   return {
@@ -56,10 +51,6 @@ export const formatUser = (nativeUser, overrideDisplayName = null) => {
   };
 };
 
-/**
- * Register a user with email and password using native Firebase Auth.
- * Automatically saves profile in Realtime Database under their official UID.
- */
 export const registerWithEmail = async (email, password, displayName = '') => {
   try {
     const authInstance = getAuthInstance();
@@ -86,7 +77,7 @@ export const registerWithEmail = async (email, password, displayName = '') => {
       bio: '',
       hobbies: [],
       isProfileCompleted: false,
-      createdAt: new Date().toISOString(),
+      createdAt: serverTimestamp(),
     });
 
     return formatUser(nativeUser, resolvedDisplayName);
@@ -95,9 +86,6 @@ export const registerWithEmail = async (email, password, displayName = '') => {
   }
 };
 
-/**
- * Log in user with email and password using native Firebase Auth.
- */
 export const loginWithEmail = async (email, password) => {
   try {
     const authInstance = getAuthInstance();
@@ -112,9 +100,6 @@ export const loginWithEmail = async (email, password) => {
   }
 };
 
-/**
- * Sign in with Google using GoogleAuthProvider.credential() and signInWithCredential().
- */
 export const loginWithGoogle = async (googleAccount = null) => {
   if (!googleAccount?.email) {
     throw new Error('No Google account provided');
@@ -132,7 +117,6 @@ export const loginWithGoogle = async (googleAccount = null) => {
     const userCredential = await signInWithCredential(authInstance, credential);
     const nativeUser = userCredential.user;
 
-    // Check if user profile already exists, if not initialize under their official Firebase Authentication UID
     const existing = await getUserProfile(nativeUser.uid);
     if (!existing) {
       await saveUserProfile(nativeUser.uid, {
@@ -147,7 +131,7 @@ export const loginWithGoogle = async (googleAccount = null) => {
         bio: '',
         hobbies: [],
         isProfileCompleted: false,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
       });
     }
 
@@ -159,9 +143,6 @@ export const loginWithGoogle = async (googleAccount = null) => {
   }
 };
 
-/**
- * Sign out current user from Firebase and Google.
- */
 export const logoutUser = async () => {
   try {
     const authInstance = getAuthInstance();
@@ -173,17 +154,11 @@ export const logoutUser = async () => {
   return true;
 };
 
-/**
- * Get current authenticated user
- */
 export const getCurrentUser = () => {
   const authInstance = getAuthInstance();
   return formatUser(authInstance.currentUser);
 };
 
-/**
- * Listen to native auth state changes with automatic unsubscription
- */
 export const onAuthStateChanged = (callback) => {
   const authInstance = getAuthInstance();
   return onNativeAuthStateChanged(authInstance, (user) => {
@@ -191,9 +166,6 @@ export const onAuthStateChanged = (callback) => {
   });
 };
 
-/**
- * Send password reset email
- */
 export const sendPasswordReset = async (email) => {
   try {
     const authInstance = getAuthInstance();
@@ -204,9 +176,6 @@ export const sendPasswordReset = async (email) => {
   }
 };
 
-/**
- * Update authenticated user's profile in Firebase Auth
- */
 export const updateUserProfile = async (profile) => {
   const authInstance = getAuthInstance();
   if (!authInstance.currentUser) {
@@ -216,9 +185,6 @@ export const updateUserProfile = async (profile) => {
   return formatUser(authInstance.currentUser);
 };
 
-/**
- * Delete current user account from Firebase Auth
- */
 export const deleteUserAccount = async () => {
   const authInstance = getAuthInstance();
   if (!authInstance.currentUser) {
@@ -228,9 +194,6 @@ export const deleteUserAccount = async () => {
   return true;
 };
 
-/**
- * Save / update user profile in Realtime Database under /users/{uid}
- */
 export const saveUserProfile = async (uid, profileData) => {
   if (!uid) return profileData;
   try {
@@ -243,9 +206,6 @@ export const saveUserProfile = async (uid, profileData) => {
   }
 };
 
-/**
- * Get user profile from Realtime Database under /users/{uid}
- */
 export const getUserProfile = async (uid) => {
   if (!uid) return null;
   try {
@@ -262,27 +222,6 @@ export const getUserProfile = async (uid) => {
   }
 };
 
-// Automatic token refresh helper (native SDK handles refreshing automatically)
-export const refreshAuthToken = async () => {
-  try {
-    const authInstance = getAuthInstance();
-    if (authInstance.currentUser) {
-      return await authInstance.currentUser.getIdToken(true);
-    }
-    return null;
-  } catch (e) {
-    return null;
-  }
-};
-
-// Session restore helper
-export const restoreSession = async () => {
-  return getCurrentUser();
-};
-
-/**
- * Format Firebase error codes to user-friendly messages
- */
 export function formatFirebaseError(codeOrMessage) {
   if (!codeOrMessage) return 'An unexpected error occurred';
   const str = String(codeOrMessage);
@@ -338,8 +277,6 @@ export default {
   deleteUserAccount,
   saveUserProfile,
   getUserProfile,
-  refreshAuthToken,
-  restoreSession,
   formatFirebaseError,
   auth,
   database,

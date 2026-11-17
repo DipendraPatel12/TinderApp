@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useChat } from '../../hooks';
 import { AppIcon, AppImage, AppList } from '../../lib';
+import { Colors } from '../../constants';
 import styles from './ChatList.Style';
 
-// Format timestamp to friendly string (e.g. "5m", "2h", "Yesterday")
 const formatTime = (timestamp) => {
   if (!timestamp) return '';
   const num = typeof timestamp === 'number' ? timestamp : Number(timestamp);
@@ -38,7 +38,6 @@ const formatTime = (timestamp) => {
 const ChatList = ({ navigation }) => {
   const { matches, loadingMatches, loadMatches } = useChat();
 
-  // Reload matches whenever screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadMatches();
@@ -77,14 +76,12 @@ const ChatList = ({ navigation }) => {
 
   const renderHeader = () => (
     <View>
-      {/* Loading Indicator */}
       {loadingMatches && matches.length === 0 ? (
         <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-          <ActivityIndicator size="small" color="#FE3C72" />
+          <ActivityIndicator size="small" color={Colors.primary} />
         </View>
       ) : null}
 
-      {/* Section 1: New Matches Carousel */}
       {matches.length > 0 ? (
         <>
           <View style={styles.sectionHeader}>
@@ -124,7 +121,6 @@ const ChatList = ({ navigation }) => {
         </>
       ) : null}
 
-      {/* Section 2: Active Conversations Header */}
       {matches.length > 0 ? (
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Conversations</Text>
@@ -138,7 +134,7 @@ const ChatList = ({ navigation }) => {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
-          <AppIcon name="comments-o" size={50} color="#DDDDDD" />
+          <AppIcon name="comments-o" size={50} color={Colors.borderMedium} />
         </View>
         <Text style={styles.emptyTitle}>No messages yet</Text>
         <Text style={styles.emptySubtitle}>
@@ -150,13 +146,12 @@ const ChatList = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+      <StatusBar backgroundColor={Colors.white} barStyle="dark-content" />
 
-      {/* Screen Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>
         <TouchableOpacity onPress={loadMatches} activeOpacity={0.7} style={{ padding: 4 }}>
-          <AppIcon name="refresh" size={18} color="#666666" />
+          <AppIcon name="refresh" size={18} color={Colors.textGray} />
         </TouchableOpacity>
       </View>
 

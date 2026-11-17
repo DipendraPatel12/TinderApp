@@ -28,7 +28,6 @@ const Auth = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
       <View style={styles.content}>
-        {/* Top Section: Logo & Tagline */}
         <View style={styles.topSection}>
           <AppImage
             source={require('../../assets/images/tinder_logo_white.png')}
@@ -46,7 +45,6 @@ const Auth = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Bottom Section: Legal text & Action Buttons */}
         <View style={styles.bottomSection}>
           <Text style={styles.termsText}>
             By tapping “Create account” or “Log in”, you agree to our{' '}
@@ -55,7 +53,6 @@ const Auth = ({ navigation }) => {
             and <Text style={styles.linkText}>Cookies Policy</Text>.
           </Text>
 
-          {/* Continue with Google Button */}
           <TouchableOpacity
             style={styles.googleButton}
             activeOpacity={0.85}
@@ -76,7 +73,6 @@ const Auth = ({ navigation }) => {
             )}
           </TouchableOpacity>
 
-          {/* Log In Button */}
           <TouchableOpacity
             style={styles.loginButton}
             activeOpacity={0.85}
@@ -85,7 +81,6 @@ const Auth = ({ navigation }) => {
             <Text style={styles.loginButtonText}>Log in</Text>
           </TouchableOpacity>
 
-          {/* Create Account Button */}
           <TouchableOpacity
             style={styles.createAccountButton}
             activeOpacity={0.85}

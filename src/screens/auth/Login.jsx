@@ -90,7 +90,6 @@ const Login = ({ navigation }) => {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Top Navigation */}
             <View style={styles.header}>
               <TouchableOpacity
                 style={styles.backButton}
@@ -101,7 +100,6 @@ const Login = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Title & Subtitle */}
             <View style={styles.titleContainer}>
               <Text style={styles.title}>Welcome back!</Text>
               <Text style={styles.subtitle}>
@@ -109,9 +107,7 @@ const Login = ({ navigation }) => {
               </Text>
             </View>
 
-            {/* Login Form */}
             <View style={styles.form}>
-              {/* Email Field */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Email address</Text>
                 <Controller
@@ -155,7 +151,6 @@ const Login = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Password Field */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Password</Text>
                 <Controller
@@ -210,7 +205,6 @@ const Login = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Forgot Password */}
               <TouchableOpacity
                 style={styles.forgotPasswordContainer}
                 activeOpacity={0.7}
@@ -219,7 +213,6 @@ const Login = ({ navigation }) => {
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
 
-              {/* Submit Button */}
               <TouchableOpacity
                 style={styles.loginButton}
                 activeOpacity={0.85}
@@ -234,14 +227,12 @@ const Login = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Divider */}
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>or continue with</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Google Sign In Button */}
             <TouchableOpacity
               style={styles.googleButton}
               activeOpacity={0.85}
@@ -256,7 +247,6 @@ const Login = ({ navigation }) => {
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>
 
-            {/* Footer */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account? </Text>
               <TouchableOpacity

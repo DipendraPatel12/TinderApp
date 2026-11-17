@@ -1,7 +1,6 @@
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { firebaseConfig } from '../config';
 
-// Configure Google Sign-In with Web Client ID
 GoogleSignin.configure({
   scopes: ['email', 'profile'],
   webClientId: firebaseConfig.webClientId,
@@ -15,7 +14,6 @@ export const promptGoogleSignIn = async () => {
     const userInfo = response?.data?.user || response?.user || response;
     let idToken = response?.data?.idToken || response?.idToken;
 
-    // Fetch idToken via getTokens if not present in direct response
     if (!idToken) {
       try {
         const tokens = await GoogleSignin.getTokens();

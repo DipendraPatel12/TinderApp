@@ -1,25 +1,24 @@
 import { StyleSheet } from 'react-native';
-import { Colors, s, vs, ms } from '../../constants';
+import { s, vs, ms, Colors } from '../../constants';
 
 export default StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
   },
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Colors.surfaceLight,
   },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(16),
     paddingVertical: vs(10),
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: Colors.borderLightAlt,
   },
   backButton: {
     padding: s(6),
@@ -34,15 +33,14 @@ export default StyleSheet.create({
   headerName: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#222222',
+    color: Colors.textHeading,
   },
   headerSubtitle: {
     fontSize: ms(11),
-    color: '#4CAF50',
+    color: Colors.green,
     fontWeight: '500',
   },
 
-  // Messages List
   messagesList: {
     paddingHorizontal: s(16),
     paddingVertical: vs(12),
@@ -58,7 +56,6 @@ export default StyleSheet.create({
     justifyContent: 'flex-start',
   },
 
-  // Bubbles
   bubble: {
     maxWidth: '75%',
     paddingHorizontal: s(14),
@@ -66,20 +63,20 @@ export default StyleSheet.create({
     borderRadius: ms(18),
   },
   bubbleSent: {
-    backgroundColor: '#FE3C72',
+    backgroundColor: Colors.primary,
     borderBottomRightRadius: ms(4),
   },
   bubbleReceived: {
-    backgroundColor: '#EEEEEE',
+    backgroundColor: Colors.borderLightAlt,
     borderBottomLeftRadius: ms(4),
   },
   bubbleTextSent: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: ms(15),
     lineHeight: ms(20),
   },
   bubbleTextReceived: {
-    color: '#222222',
+    color: Colors.textHeading,
     fontSize: ms(15),
     lineHeight: ms(20),
   },
@@ -89,43 +86,41 @@ export default StyleSheet.create({
     alignSelf: 'flex-end',
   },
   timeTextSent: {
-    color: 'rgba(255, 255, 255, 0.75)',
+    color: Colors.overlayWhiteHigh,
   },
   timeTextReceived: {
-    color: '#888888',
+    color: Colors.textDim,
   },
 
-  // Input Bar
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
     paddingVertical: vs(8),
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
+    borderTopColor: Colors.borderLightAlt,
   },
   input: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.surfaceAlt,
     paddingHorizontal: s(16),
     paddingVertical: vs(10),
     borderRadius: ms(22),
     fontSize: ms(14),
-    color: '#222222',
+    color: Colors.textHeading,
     maxHeight: vs(100),
   },
   sendButton: {
     width: ms(42),
     height: ms(42),
     borderRadius: ms(21),
-    backgroundColor: '#FFF0F4',
+    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: s(8),
   },
   sendButtonActive: {
-    backgroundColor: '#FE3C72',
+    backgroundColor: Colors.primary,
   },
 });
-

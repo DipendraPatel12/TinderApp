@@ -38,10 +38,6 @@ const RootNavigation = () => {
     };
   }, []);
 
-  // App is ready when:
-  // 1. Minimum 1.2s splash timer is done
-  // 2. Auth state is initialized
-  // 3. If a user is logged in, their profile data must also be loaded (preventing CompleteProfile flash)
   const isProfileLoading = Boolean(user && userData === null);
   const isAppReady = isSplashTimerDone && authInitialized && !isProfileLoading;
 

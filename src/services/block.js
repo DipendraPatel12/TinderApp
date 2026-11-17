@@ -1,9 +1,5 @@
 import { getDb, serverTimestamp } from './firebase';
 
-/**
- * Block a user in Realtime Database under /blockedUsers/{currentUserId}/{targetUserId}
- * and remove any active match between them.
- */
 export const blockUser = async (currentUserId, targetUser) => {
   if (!currentUserId || !targetUser?.uid) return false;
 
@@ -16,17 +12,14 @@ export const blockUser = async (currentUserId, targetUser) => {
       blockedAt: serverTimestamp(),
     };
 
-    // 1. Record in /blockedUsers/{currentUserId}/{targetUserId}
     await db
       .ref(`/blockedUsers/${currentUserId}/${targetUser.uid}`)
       .set(blockedData);
 
-    // 2. Also remove any active match between these two users
     const matchId = [currentUserId, targetUser.uid].sort().join('_');
     try {
       await db.ref(`/matches/${matchId}`).remove();
     } catch (e) {
-      // If match didn't exist, ignore
     }
 
     return true;
@@ -36,9 +29,6 @@ export const blockUser = async (currentUserId, targetUser) => {
   }
 };
 
-/**
- * Unblock a user by removing their entry from /blockedUsers/{currentUserId}/{targetUserId}
- */
 export const unblockUser = async (currentUserId, targetUserId) => {
   if (!currentUserId || !targetUserId) return false;
 
@@ -52,9 +42,6 @@ export const unblockUser = async (currentUserId, targetUserId) => {
   }
 };
 
-/**
- * Fetch list of blocked users for the current user
- */
 export const fetchBlockedUsers = async (currentUserId) => {
   if (!currentUserId) return [];
 

@@ -73,7 +73,6 @@ const Signup = ({ navigation }) => {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Header / Back */}
             <View style={styles.header}>
               <TouchableOpacity
                 style={styles.backButton}
@@ -84,7 +83,6 @@ const Signup = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Title & Subtitle */}
             <View style={styles.titleContainer}>
               <Text style={styles.title}>Create Account</Text>
               <Text style={styles.subtitle}>
@@ -92,9 +90,7 @@ const Signup = ({ navigation }) => {
               </Text>
             </View>
 
-            {/* Form */}
             <View style={styles.form}>
-              {/* Name */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>First Name</Text>
                 <Controller
@@ -136,7 +132,6 @@ const Signup = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Email */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Email Address</Text>
                 <Controller
@@ -180,7 +175,6 @@ const Signup = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Password */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Password</Text>
                 <Controller
@@ -235,7 +229,6 @@ const Signup = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Confirm Password */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Confirm Password</Text>
                 <Controller
@@ -289,7 +282,6 @@ const Signup = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Submit Button */}
               <TouchableOpacity
                 style={styles.signupButton}
                 activeOpacity={0.85}
@@ -304,14 +296,12 @@ const Signup = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Divider */}
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>or continue with</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Google Sign In Button */}
             <TouchableOpacity
               style={styles.googleButton}
               activeOpacity={0.85}
@@ -326,7 +316,6 @@ const Signup = ({ navigation }) => {
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>
 
-            {/* Footer */}
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account? </Text>
               <TouchableOpacity
