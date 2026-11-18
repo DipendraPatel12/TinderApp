@@ -12,6 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSwipes, useAuth } from '../../hooks';
 import { AppIcon, AppImage } from '../../lib';
 import { Colors } from '../../constants';
+import { HobbyChips } from '../../components';
 import MatchModal from './MatchModal';
 import styles from './Home.Style';
 
@@ -138,21 +139,7 @@ const Home = ({ navigation }) => {
                 </Text>
               ) : null}
 
-              {(() => {
-                const cardHobbies = Array.isArray(currentCard.hobbies)
-                  ? currentCard.hobbies
-                  : Object.values(currentCard.hobbies || {});
-                if (cardHobbies.length === 0) return null;
-                return (
-                  <View style={styles.hobbiesRow}>
-                    {cardHobbies.slice(0, 4).map((hobby, index) => (
-                      <View key={index} style={styles.hobbyChip}>
-                        <Text style={styles.hobbyText}>{hobby}</Text>
-                      </View>
-                    ))}
-                  </View>
-                );
-              })()}
+              <HobbyChips hobbies={currentCard.hobbies} />
             </TouchableOpacity>
           </View>
         )}

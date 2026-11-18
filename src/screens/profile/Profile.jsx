@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks';
 import { Colors, vs } from '../../constants';
 import { promptImagePicker, AppIcon, AppImage, useAppCamera } from '../../lib';
+import { HobbyChips } from '../../components';
 import { uploadImageToCloudinary } from '../../services/cloudinary';
 import styles from './Profile.Style';
 
@@ -130,13 +131,7 @@ const Profile = ({ navigation }) => {
         {hobbiesList.length > 0 ? (
           <View style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>Interests</Text>
-            <View style={styles.hobbiesContainer}>
-              {hobbiesList.map((hobby, index) => (
-                <View key={index} style={styles.hobbyChip}>
-                  <Text style={styles.hobbyText}>{hobby}</Text>
-                </View>
-              ))}
-            </View>
+            <HobbyChips hobbies={hobbiesList} variant="primary" maxItems={null} />
           </View>
         ) : null}
 

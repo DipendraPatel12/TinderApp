@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBlock, useSwipes, useChat } from '../../hooks';
 import { AppIcon, AppImage } from '../../lib';
+import { HobbyChips } from '../../components';
 import { Colors } from '../../constants';
 import styles from './UserProfile.Style';
 
@@ -117,13 +118,7 @@ const UserProfile = ({ route, navigation }) => {
           {hobbiesList.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Interests</Text>
-              <View style={styles.hobbiesContainer}>
-                {hobbiesList.map((hobby, index) => (
-                  <View key={index} style={styles.hobbyChip}>
-                    <Text style={styles.hobbyText}>{hobby}</Text>
-                  </View>
-                ))}
-              </View>
+              <HobbyChips hobbies={hobbiesList} variant="primary" maxItems={null} />
             </View>
           ) : null}
 
